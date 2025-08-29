@@ -265,12 +265,8 @@
 
 
               
-       <!--          <div id="referral-used-section" class="card-bg p-4 rounded-lg mt-6 hidden">
-                    <h3 class="font-semibold mb-3 text-center text-green-400">✅ রেফারেল কোড ব্যবহৃত হয়েছে</h3>
-                    <p class="text-center text-gray-300">আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন এবং <span id="referral-bonus-amount">100</span> ef বোনাস পেয়েছেন!</p>
-                 </div> -->
-
-
+                 <div id="referral-used-section" class="card-bg p-4 rounded-lg mt-6 hidden">
+                         
 
 
               <!-- রেফারেল ক্লেইম সেকশন -->
@@ -294,7 +290,7 @@
     </div>
 </div>
 
-
+</div> 
 
               
                  <div class="card-bg p-4 rounded-lg">
@@ -594,7 +590,9 @@
                 loader.style.display = 'none';
             }
         }
-        
+
+
+
         // রেফারেল স্ট্যাটাস চেক এবং UI আপডেট করার ফাংশন
         async function checkAndUpdateReferralStatus() {
             if (!userData) return;
@@ -717,6 +715,12 @@
                 showAlert("রেফারেল বোনাস ক্লেইম করতে ত্রুটি: " + error.message);
             }
         };
+
+
+
+
+        
+// Refer fungtiom
         
         async function handleTelegramUser(tgUser) {
             currentUser = {
