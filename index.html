@@ -1,1 +1,2099 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EF রিওয়ার্ড অ্যাপ</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Ad Code -->
+    <script src='//libtl.com/sdk.js' data-zone='9549781' data-sdk='show_9549781'></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #121212; color: #ffffff; }
+        .dark-bg { background-color: #121212; }
+        .card-bg { background-color: #1e1e1e; }
+        .border-accent { border-color: #ff8c00; }
+        .text-accent { color: #ff8c00; }
+        .btn, .btn-accent, .btn-outline-accent { transition: all 0.2s ease-in-out; transform: scale(1); }
+        .btn:active, .btn-accent:active, .btn-outline-accent:active { transform: scale(0.95); }
+        .btn-accent { background-color: #ff8c00; color: #121212; font-weight: bold; }
+        .btn-accent:hover { background-color: #e67e00; }
+        .btn-outline-accent { border: 1px solid #ff8c00; color: #ff8c00; }
+        .btn-outline-accent:hover { background-color: #ff8c00; color: #121212; }
+        .input-field { background-color: #2c2c2c; border: 1px solid #444; }
+        .main-page { display: none; }
+        .main-page.active { display: flex; animation: fadeIn 0.5s ease-in-out; }
+        .sub-page { display: none; }
+        .sub-page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .bottom-nav a.active { color: #ff8c00; }
+        .notification-dot {
+            position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
+            background-color: #ef4444; border-radius: 50%; border: 2px solid #121212; display: none;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* New Styles */
+        .streak-counter { 
+            background: linear-gradient(45deg, #ff8c00, #ff5500); 
+            color: white; 
+            padding: 8px 12px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 5px;
+        }
+        .level-badge {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8c00, #ff5500);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        /* Notification animation */
+        @keyframes ring { 
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+        .ringing { animation: ring 0.5s ease-in-out infinite; }
+        /* Profile image */
+        .profile-image {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ff8c00;
+        }
+        /* Task System Styles */
+        .task-card { transition: all 0.3s ease; }
+        .task-card.disabled { opacity: 0.6; filter: grayscale(1); }
+        .task-timer {
+            background: linear-gradient(45deg, #ff8c00, #ff5500);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+        /* Loading animation */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff8c00;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Input validation */
+        .input-error {
+            border-color: #ef4444 !important;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        /* Balance display toggle */
+        .balance-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .balance-dropdown {
+            position: absolute;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 5px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto">
 
+    <!-- App Loader -->
+    <div id="loader" class="hidden fixed inset-0 dark-bg bg-opacity-75 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div>
+    </div>
+
+    <!-- Non-Telegram Warning -->
+    <div id="non-telegram-warning" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm text-center">
+            <h2 class="text-lg font-bold mb-4 text-accent">Telegram প্রয়োজন</h2>
+            <p class="text-gray-300 mb-4">আমাদের EF রিওয়ার্ড অ্যাপটি ব্যবহার করতে Telegram প্রয়োজন। অনুগ্রহ করে আমাদের বটের মাধ্যমে অ্যাপটি ব্যবহার করুন।</p>
+            <button id="open-bot-btn" class="w-full p-3 rounded-lg btn-accent mb-3">EF বট শুরু করুন</button>
+            <p class="text-sm text-gray-400">বটে গিয়ে "Start" টিপে শুরু করুন</p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="min-h-screen flex-col main-page">
+        <header class="flex items-center justify-between p-4 sticky top-0 bg-opacity-80 backdrop-blur-md z-10 dark-bg">
+            <h1 class="text-xl font-bold">EF রিওয়ার্ড</h1>
+            <div class="flex items-center space-x-4">
+                <div class="streak-counter" id="streak-counter" style="display: none;">
+                    <i data-lucide="flame" class="w-4 h-4"></i>
+                    <span id="streak-days">0</span> দিন
+                </div>
+                <div id="notification-bell" class="relative cursor-pointer">
+                    <i data-lucide="bell" class="w-6 h-6"></i>
+                    <div id="notification-dot" class="notification-dot"></div>
+                </div>
+                <i data-lucide="user" class="w-6 h-6 cursor-pointer" onclick="navigateTo('profile-page')"></i>
+            </div>
+        </header>
+
+        <main class="flex-grow">
+            <!-- Home Page -->
+            <div id="home-page" class="p-4 space-y-6 sub-page active">
+                <div class="card-bg p-4 rounded-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">আপনার ব্যালেন্স</p>
+                        <div class="balance-toggle" onclick="toggleBalanceDropdown()">
+                            <p class="text-3xl font-bold"><span id="coin-balance">0</span> <span id="balance-unit">ef</span></p>
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </div>
+                        <div id="balance-dropdown" class="balance-dropdown hidden">
+                            <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')">ef</div>
+                            <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')">৳ BDT</div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="level-badge" id="user-level">লেভেল 1</span>
+                            <div class="progress-bar w-20">
+                                <div class="progress-fill" id="level-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="home-withdraw-btn" class="bg-white text-black font-semibold px-6 py-2 rounded-lg">উত্তোলন</button>
+                </div>
+                
+                <section>
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold">উপলব্ধ টাস্ক</h2>
+                            <p class="text-sm text-gray-400">টাস্ক সম্পূর্ণ করে ef উপার্জন করুন</p>
+                        </div>
+                        <div id="tasks-loading" class="text-sm text-gray-400">লোড হচ্ছে...</div>
+                    </div>
+                    
+                    <div id="tasks-container" class="space-y-3">
+                        <!-- টাস্কগুলি এডমিন থেকে ডায়নামিকভাবে লোড হবে -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Wallet Page -->
+            <div id="wallet-page" class="p-4 space-y-6 sub-page">
+                <h2 class="text-xl font-bold text-center">আমার ওয়ালেট</h2>
+                <div class="card-bg p-4 rounded-lg">
+                    <h3 class="font-semibold mb-3"> এখনই উত্তোলন করুন </h3>
+                    <p class="text-sm text-gray-400 mb-1">বর্তমান ব্যালেন্স: <span class="font-bold text-accent"><span id="wallet-coin-balance">0</span> ef</span></p>
+                    <p class="text-sm text-gray-400 mb-2">ন্যূনতম উত্তোলন: <span id="min-withdrawal-info">...</span> ef</p>
+                    <p class="text-sm text-gray-400 mb-4 font-semibold" id="coin-value-info">...</p>
+                    <input id="withdraw-amount" type="number" placeholder="ef পরিমাণ লিখুন" class="w-full p-3 rounded-lg input-field mb-3">
+                    <select id="withdraw-method" class="w-full p-3 rounded-lg input-field mb-3"></select>
+                    <div id="payment-details-container"></div>
+                    <div id="payment-error" class="error-message"></div>
+                    <button id="withdraw-btn" class="w-full p-3 rounded-lg btn-accent mt-3">উত্তোলন রিকোয়েস্ট</button>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-3">উত্তোলন ইতিহাস</h3>
+                    <div id="withdrawal-history-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Refer Page -->
+            <div id="refer-page" class="p-4 space-y-6 sub-page">
+                 <h2 class="text-xl font-bold text-center">রেফার এবং উপার্জন</h2>
+                 <div class="card-bg p-6 rounded-lg text-center">
+                     <p class="text-gray-400 mb-2">আপনার রেফার কোড</p>
+                     <div class="bg-gray-800 p-3 rounded-lg flex items-center justify-center mb-4">
+                         <span id="referral-code" class="text-2xl font-bold tracking-widest">লোড হচ্ছে...</span>
+                         <button id="copy-code-btn" class="ml-4"><i data-lucide="copy" class="w-6 h-6 text-gray-400"></i></button>
+                     </div>
+                     <p class="text-sm text-gray-300">আপনার বন্ধুদের সাথে শেয়ার করুন এবং অতিরিক্ত উপার্জন করুন।</p>
+                 </div>
+                 <button id="share-btn" class="w-full p-3 rounded-lg btn-accent">আপনার লিংক শেয়ার করুন...</button>
+                 
+                 <div id="referral-input-section" class="card-bg p-4 rounded-lg mt-6">
+                    <h3 class="font-semibold mb-3 text-center">কারো রেফার কোড আছে?</h3>
+                    <input id="enter-referral-code" type="text" placeholder="কো드 এখানে লিখুন" class="w-full p-3 rounded-lg input-field mb-3">
+                    <button id="apply-referral-btn" class="w-full p-3 rounded-lg btn-outline-accent">কোড প্রয়োগ করুন</button>
+                 </div>
+
+
+              
+       <!--          <div id="referral-used-section" class="card-bg p-4 rounded-lg mt-6 hidden">
+                    <h3 class="font-semibold mb-3 text-center text-green-400">✅ রেফারেল কোড ব্যবহৃত হয়েছে</h3>
+                    <p class="text-center text-gray-300">আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন এবং <span id="referral-bonus-amount">100</span> ef বোনাস পেয়েছেন!</p>
+                 </div> -->
+
+
+
+
+              <!-- রেফারেল ক্লেইম সেকশন -->
+<div id="referral-claim-section" class="hidden">
+    <div class="bg-blue-900 bg-opacity-20 p-4 rounded-lg border border-blue-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i data-lucide="gift" class="w-6 h-6 text-blue-400"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="font-bold text-blue-400">রেফারেল বোনাস উপলব্ধ! 🎁</h3>
+                <p class="text-sm text-gray-300 mt-1">
+                    <span id="referrer-name"></span> 
+                    <span id="referrer-username" class="text-blue-300"></span> আপনাকে রেফার করেছে
+                </p>
+                <button onclick="claimReferralBonus()" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+                    বোনাস ক্লেইম করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+              
+                 <div class="card-bg p-4 rounded-lg">
+                    <h3 class="font-semibold mb-3 text-center">রেফারেল স্ট্যাটাস</h3>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-gray-800 p-3 rounded-lg">
+                            <p class="text-2xl font-bold" id="total-referrals">0</p>
+                            <p class="text-sm text-gray-400">মোট রেফারেল</p>
+                        </div>
+                        <div class="bg-gray-800 p-3 rounded-lg">
+                            <p class="text-2xl font-bold" id="referral-earnings">0</p>
+                            <p class="text-sm text-gray-400">মোট আয়</p>
+                        </div>
+                    </div>
+                 </div>
+            </div> -->
+
+
+
+
+<!-- রেফারেল ব্যবহৃত সেকশন (আপডেটেড) -->
+<div id="referral-used-section" class="hidden">
+    <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i data-lucide="badge-check" class="w-6 h-6 text-green-400"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="font-bold text-green-400">রেফারেল বোনাস পেয়েছেন! 🎉</h3>
+                <p class="text-sm text-gray-300 mt-1">
+                    <span id="referrer-info-name" class="font-medium"></span> 
+                    (<span id="referrer-info-username" class="text-green-300"></span>) এর দ্বারা রেফার্ড হয়েছেন
+                </p>
+                <p class="text-xs text-gray-400 mt-1">আপনি <span id="referral-bonus-amount">100</span> ef বোনাস পেয়েছেন</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+          
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="p-4 space-y-6 sub-page">
+                <h2 class="text-xl font-bold text-center mb-4"> </h2> <!-- প্রোফাইল - Profile -->
+                
+                <div class="flex flex-col items-center">
+                    <div class="relative">
+                        <img id="profile-image" src="https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=" class="profile-image">
+                        <label for="profile-image-upload" class="absolute bottom-0 right-0 bg-accent text-white p-2 rounded-full cursor-pointer">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                        </label>
+                        <input type="file" id="profile-image-upload" accept="image/*" class="hidden">
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <h2 id="profile-name" class="text-xl font-bold mb-1">ইউজারের নাম</h2>
+                        <p id="profile-username" class="text-gray-400">@username</p>
+                    </div>
+                    
+                    <div class="flex gap-2 mt-2">
+                        <span class="level-badge" id="profile-level">লেভেল 1</span>
+                        <div class="streak-counter" id="profile-streak">
+                            <i data-lucide="flame" class="w-4 h-4"></i>
+                            <span>0</span> দিন
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-bg p-4 rounded-lg">
+                    <h3 class="font-semibold mb-3">অ্যাকাউন্ট স্ট্যাটাস</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">সদস্য sejak</span>
+                            <span id="member-since">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">টাস্ক সম্পূর্ণ</span>
+                            <span id="tasks-completed">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">মোট উপার্জন</span>
+                            <span id="total-earned">0 ef</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">মোট উত্তোলন</span>
+                            <span id="total-withdrawn">0 ef</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="logout-btn" class="w-full mt-6 p-3 rounded-lg bg-red-600 text-white font-bold">রিস্টার্ট </button>
+            </div>
+            
+            <!-- Notifications Page -->
+            <div id="notifications-page" class="p-4 space-y-4 sub-page">
+                <h2 class="text-xl font-bold text-center">নোটিফিকেশন</h2>
+                <div id="notifications-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Task Modal Templates -->
+            <div id="group-join-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm text-center">
+                    <h2 class="text-lg font-bold mb-4" id="group-join-title">গ্রুপে যোগ দিন</h2>
+                    <div class="task-timer mx-auto mb-4" id="group-join-timer">5s</div>
+                    <p class="text-sm text-gray-300 mb-4" id="group-join-description">আপনাকে রিডাইরেক্ট করা হচ্ছে...</p>
+                    <div class="flex space-x-4">
+                        <button onclick="closeGroupJoinModal()" class="flex-1 p-3 rounded-lg bg-gray-600 text-white">বাতিল</button>
+                        <button id="group-join-open-btn" class="flex-1 p-3 rounded-lg btn-accent">গ্রুপ খুলুন</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-watch-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                    <h2 class="text-lg font-bold mb-4" id="video-watch-title">ভিডিও দেখুন</h2>
+                    <p class="text-sm text-gray-300 mb-4" id="video-watch-description">ভিডিওটি সম্পূর্ণ দেখে ef উপার্জন করুন</p>
+                    
+                    <div class="video-container mb-4">
+                        <iframe id="video-player" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="task-timer" id="video-watch-timer">0s</div>
+                        <div class="text-sm text-gray-300" id="video-progress">0% সম্পূর্ণ</div>
+                    </div>
+                    
+                    <div class="progress-bar bg-gray-600 mb-4">
+                        <div class="progress-fill" id="video-progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button onclick="closeVideoModal()" class="flex-1 p-3 rounded-lg bg-gray-600 text-white">বাতিল</button>
+                        <button id="video-start-btn" class="flex-1 p-3 rounded-lg btn-outline-accent">ভিডিও শুরু করুন</button>
+                        <button id="video-complete-btn" class="flex-1 p-3 rounded-lg btn-accent" disabled>সম্পূর্ণ</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav sticky bottom-0 grid grid-cols-4 items-center text-center py-2 card-bg">
+            <a href="#" class="nav-link active" data-page="home-page"><i data-lucide="home" class="mx-auto w-6 h-6"></i><span class="text-xs">হোম</span></a>
+            <a href="#" class="nav-link" data-page="wallet-page"><i data-lucide="wallet" class="mx-auto w-6 h-6"></i><span class="text-xs">ওয়ালেট</span></a>
+            <a href="#" class="nav-link" data-page="refer-page"><i data-lucide="users" class="mx-auto w-6 h-6"></i><span class="text-xs">রেফার</span></a>
+            <a href="#" class="nav-link" data-page="profile-page"><i data-lucide="user" class="mx-auto w-6 h-6"></i><span class="text-xs">প্রোফাইল</span></a>
+        </nav>
+    </div>
+    
+    <div id="custom-alert" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm text-center">
+            <p id="alert-message" class="mb-4"></p>
+            <button id="alert-ok-btn" class="btn-accent px-6 py-2 rounded-lg">ঠিক আছে</button>
+        </div>
+    </div>
+
+    <!-- Notification Sound Element -->
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase Storage -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBkvArKeIY11CDntlf9uyWPwZIPED1WZQ",
+            authDomain: "ef-earning-bot.firebaseapp.com",
+            projectId: "ef-earning-bot",
+            storageBucket: "ef-earning-bot.firebasestorage.app",
+            messagingSenderId: "742449423671",
+            appId: "1:742449423671:web:7dfbef9db2e7b4ff6726b2"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Telegram WebApp initialization
+        const tg = window.Telegram?.WebApp;
+        let currentUser = null;
+        let userData = null;
+        let appConfig = {};
+        let currentTasks = {};
+        let activeTimers = {};
+        let notificationInterval = null;
+        let balanceDisplayMode = localStorage.getItem('balanceDisplayMode') || 'ef';
+        
+        const loader = document.getElementById('loader');
+        const coinBalanceEl = document.getElementById('coin-balance');
+        const balanceUnitEl = document.getElementById('balance-unit');
+        const walletCoinBalanceEl = document.getElementById('wallet-coin-balance');
+        const profileNameEl = document.getElementById('profile-name');
+        const profileUsernameEl = document.getElementById('profile-username');
+        const referralCodeEl = document.getElementById('referral-code');
+        const minWithdrawalInfoEl = document.getElementById('min-withdrawal-info');
+        const coinValueInfoEl = document.getElementById('coin-value-info');
+        const withdrawMethodSelect = document.getElementById('withdraw-method');
+        const notificationDot = document.getElementById('notification-dot');
+        const paymentDetailsContainer = document.getElementById('payment-details-container');
+        const paymentErrorEl = document.getElementById('payment-error');
+        const streakCounterEl = document.getElementById('streak-counter');
+        const streakDaysEl = document.getElementById('streak-days');
+        const userLevelEl = document.getElementById('user-level');
+        const levelProgressEl = document.getElementById('level-progress');
+        const totalReferralsEl = document.getElementById('total-referrals');
+        const referralEarningsEl = document.getElementById('referral-earnings');
+        const tasksContainerEl = document.getElementById('tasks-container');
+        const tasksLoadingEl = document.getElementById('tasks-loading');
+        const notificationBell = document.getElementById('notification-bell');
+        const notificationSound = document.getElementById('notification-sound');
+        const referralInputSection = document.getElementById('referral-input-section');
+        const referralUsedSection = document.getElementById('referral-used-section');
+        const referralBonusAmountEl = document.getElementById('referral-bonus-amount');
+        const nonTelegramWarning = document.getElementById('non-telegram-warning');
+        const openBotBtn = document.getElementById('open-bot-btn');
+        
+        // Check if Telegram WebApp is available
+        if (!tg) {
+            showNonTelegramWarning();
+            return;
+        }
+        
+        // Initialize Telegram WebApp
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Start authentication process
+        initializeApp();
+        
+        function showNonTelegramWarning() {
+            nonTelegramWarning.classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+            
+            openBotBtn.addEventListener('click', function() {
+                window.open('https://t.me/efEarnBot', '_blank');
+            });
+        }
+        
+        async function initializeApp() {
+            loader.style.display = 'flex';
+            
+            try {
+                // Get user data from Telegram
+                const tgUser = tg.initDataUnsafe?.user;
+                if (!tgUser) {
+                    throw new Error('Telegram user data not available');
+                }
+                
+                // Check if user came from referral link (start parameter exists)
+                const startParam = tg.startParam;
+                console.log('Start parameter:', startParam);
+                
+                // Set up Telegram user
+                await handleTelegramUser(tgUser);
+                
+                // Load app config and user data
+                await fetchAllConfigs();
+                
+                // বিশেষভাবে রেফারেল ইউজারদের জন্য UI আপডেট
+                await checkAndUpdateReferralStatus();
+                
+                await checkNewNotifications();
+                await checkDailyStreak();
+                await checkLevelUp();
+                
+                // Update UI
+                updateUI();
+                showMainPage('app-container');
+                navigateTo('home-page');
+                
+                // Provide haptic feedback
+                tg.HapticFeedback.impactOccurred('light');
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNonTelegramWarning();
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+        
+        // রেফারেল স্ট্যাটাস চেক এবং UI আপডেট করার ফাংশন
+        async function checkAndUpdateReferralStatus() {
+            if (!userData) return;
+            
+            const referralInputSection = document.getElementById('referral-input-section');
+            const referralUsedSection = document.getElementById('referral-used-section');
+            const referralClaimSection = document.getElementById('referral-claim-section');
+            
+            if (!referralInputSection || !referralUsedSection || !referralClaimSection) return;
+            
+            try {
+                // ইউজার ডাটা রিফ্রেশ করে নেওয়া
+                const userDoc = await db.collection("users").doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    userData = userDoc.data();
+                    
+                    // যদি ইউজার রেফার্ড হয়ে থাকে কিন্তু এখনও বোনাস না পেয়ে থাকে
+                    if (userData.referredBy && !userData.referralBonusClaimed) {
+                        referralInputSection.classList.add('hidden');
+                        referralUsedSection.classList.add('hidden');
+                        referralClaimSection.classList.remove('hidden');
+                        
+                        // রেফারার তথ্য দেখানো
+                        const referrerDoc = await db.collection("users")
+                            .where("referralCode", "==", userData.referredBy)
+                            .get();
+                            
+                        if (!referrerDoc.empty) {
+                            const referrerData = referrerDoc.docs[0].data();
+                            const referrerName = referrerData.telegramData?.first_name || 'একজন ইউজার';
+                            const referrerUsername = referrerData.telegramData?.username ? '@' + referrerData.telegramData.username : '';
+                            
+                            document.getElementById('referrer-name').textContent = referrerName;
+                            document.getElementById('referrer-username').textContent = referrerUsername;
+                        }
+                        
+                    } 
+                    // যদি ইউজার রেফার্ড হয়ে থাকে এবং বোনাস already পেয়ে থাকে
+                    else if (userData.referredBy && userData.referralBonusClaimed) {
+                        referralInputSection.classList.add('hidden');
+                        referralClaimSection.classList.add('hidden');
+                        referralUsedSection.classList.remove('hidden');
+                        
+                        // রেফারার তথ্য দেখানো
+                        const referrerDoc = await db.collection("users")
+                            .where("referralCode", "==", userData.referredBy)
+                            .get();
+                            
+                        if (!referrerDoc.empty) {
+                            const referrerData = referrerDoc.docs[0].data();
+                            const referrerName = referrerData.telegramData?.first_name || 'একজন ইউজার';
+                            const referrerUsername = referrerData.telegramData?.username ? '@' + referrerData.telegramData.username : '';
+                            
+                            document.getElementById('referrer-info-name').textContent = referrerName;
+                            document.getElementById('referrer-info-username').textContent = referrerUsername;
+                        }
+                        
+                        referralBonusAmountEl.textContent = appConfig.referralBonus || 100;
+                    } else {
+                        // যদি ইউজার রেফার্ড না হয়ে থাকে
+                        referralUsedSection.classList.add('hidden');
+                        referralClaimSection.classList.add('hidden');
+                        referralInputSection.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("রেফারেল স্ট্যাটাস চেক করতে ত্রুটি:", error);
+            }
+        }
+        
+        // রেফারেল বোনাস ক্লেইম করার ফাংশন
+        window.claimReferralBonus = async function() {
+            if (!userData.referredBy || userData.referralBonusClaimed) {
+                return showAlert("আপনি ইতিমধ্যেই রেফারেল বোনাস ক্লেইম করেছেন");
+            }
+            
+            try {
+                const referralBonusAmount = appConfig.referralBonus || 100;
+                
+                // ইউজারের ব্যালেন্স আপডেট
+                await db.collection("users").doc(currentUser.uid).update({
+                    balance: firebase.firestore.FieldValue.increment(referralBonusAmount),
+                    referralBonusClaimed: true,
+                    totalEarned: firebase.firestore.FieldValue.increment(referralBonusAmount)
+                });
+                
+                // রেফারার ব্যালেন্স আপডেট
+                const referrerDoc = await db.collection("users")
+                    .where("referralCode", "==", userData.referredBy)
+                    .get();
+                    
+                if (!referrerDoc.empty) {
+                    const referrerData = referrerDoc.docs[0].data();
+                    const referrerBonusAmount = appConfig.referrerBonus || 100;
+                    
+                    await db.collection("users").doc(referrerDoc.docs[0].id).update({
+                        balance: firebase.firestore.FieldValue.increment(referrerBonusAmount),
+                        totalEarned: firebase.firestore.FieldValue.increment(referrerBonusAmount)
+                    });
+                }
+                
+                // ইউজার ডাটা আপডেট
+                userData.balance += referralBonusAmount;
+                userData.totalEarned += referralBonusAmount;
+                userData.referralBonusClaimed = true;
+                
+                // UI আপডেট
+                updateUI();
+                await checkAndUpdateReferralStatus();
+                
+                showAlert(`🎉 অভিনন্দন! আপনি ${referralBonusAmount} ef রেফারেল বোনাস পেয়েছেন!`);
+                
+                // Haptic feedback
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                
+            } catch (error) {
+                console.error("রেফারেল বোনাস ক্লেইম করতে ত্রুটি:", error);
+                showAlert("রেফারেল বোনাস ক্লেইম করতে ত্রুটি: " + error.message);
+            }
+        };
+        
+        async function handleTelegramUser(tgUser) {
+            currentUser = {
+                uid: tgUser.id.toString(),
+                telegramData: tgUser
+            };
+            
+            // Save user data to local storage
+            localStorage.setItem('telegramUser', JSON.stringify(tgUser));
+            
+            // Check if user exists in Firebase
+            await fetchOrCreateUser();
+            
+            // Update profile with Telegram data
+            updateProfileWithTelegramData(tgUser);
+        }
+        
+        async function fetchOrCreateUser() {
+            try {
+                const userDoc = await db.collection("users").doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    userData = userDoc.data();
+                } else {
+                    await createNewUser();
+                }
+                
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                await createNewUser();
+            }
+        }
+        
+        async function createNewUser() {
+            const tgUser = currentUser.telegramData;
+            const referralCode = tg.startParam || null;
+            
+            const defaultUserData = {
+                uid: currentUser.uid,
+                telegramData: {
+                    id: tgUser.id,
+                    first_name: tgUser.first_name,
+                    last_name: tgUser.last_name || '',
+                    username: tgUser.username || '',
+                    photo_url: tgUser.photo_url || '',
+                    language_code: tgUser.language_code || 'en'
+                },
+                balance: 50,
+                referralCode: currentUser.uid,
+                referredBy: referralCode,
+                referralBonusClaimed: false,
+                lastNotificationCheck: new Date(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                dailyAdCount: 0,
+                lastAdWatchDate: new Date().toISOString().split('T')[0],
+                isBlocked: false,
+                level: 1,
+                experience: 0,
+                streakCount: 0,
+                lastTaskDate: null,
+                totalTasksCompleted: 0,
+                totalEarned: 0,
+                totalWithdrawn: 0,
+                profileImage: tgUser.photo_url || "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=",
+                devices: [],
+                completedTasks: []
+            };
+            
+            await db.collection("users").doc(currentUser.uid).set(defaultUserData);
+            userData = defaultUserData;
+            
+            if (referralCode) {
+                await applyReferralBonus(referralCode, false);
+            }
+        }
+        
+        function updateProfileWithTelegramData(tgUser) {
+            // Update profile image
+            if (tgUser.photo_url) {
+                document.getElementById('profile-image').src = tgUser.photo_url;
+            }
+            
+            // Update name and username
+            const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+            profileNameEl.textContent = fullName;
+            
+            if (tgUser.username) {
+                profileUsernameEl.textContent = '@' + tgUser.username;
+                profileUsernameEl.classList.remove('hidden');
+            }
+        }
+        
+        async function fetchAllConfigs() {
+            await fetchAppConfig();
+            await fetchTaskConfig();
+        }
+        
+        async function fetchAppConfig() {
+            try {
+                const configDoc = await db.collection("config").doc("main").get();
+                appConfig = configDoc.exists ? configDoc.data() : { 
+                    minWithdrawal: 5000, 
+                    paymentMethods: ["Bkash", "Nagad", "Rocket", "Upay", "Binance", "Payeer"], 
+                    dailyAdLimit: 10, 
+                    coinValueCoins: 1000, 
+                    coinValueInr: 10,
+                    dailyLoginBonus: 25,
+                    maintenanceMode: false,
+                    registrationEnabled: true,
+                    shareImageUrl: "https://example.com/path/to/share-image.jpg",
+                    referralBonus: 100,
+                    referrerBonus: 100,
+                    streakBonus: 100,
+                    levelBonuses: {
+                        2: 50,
+                        3: 100,
+                        4: 200,
+                        5: 500
+                    }
+                };
+            } catch (error) {
+                console.error("Error fetching app config:", error);
+            }
+        }
+        
+        async function fetchTaskConfig() {
+            try {
+                const tasksSnapshot = await db.collection("tasks")
+                    .where("enabled", "==", true)
+                    .orderBy("order", "asc")
+                    .get();
+                
+                currentTasks = {};
+                tasksSnapshot.forEach(doc => {
+                    currentTasks[doc.id] = { id: doc.id, ...doc.data() };
+                });
+                
+                // Admin-created tasks থাকলে শুধুমাত্র সেগুলো দেখাবে, নাহলে ডিফল্ট টাস্ক লোড করবে
+                if (Object.keys(currentTasks).length === 0) {
+                    loadDefaultTasks();
+                } else {
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error("Error fetching tasks:", error);
+                loadDefaultTasks();
+            }
+        }
+        
+        function loadDefaultTasks() {
+            currentTasks = {
+                watch_ads: {
+                    id: "watch_ads",
+                    title: "এড দেখুন",
+                    type: "watch_ads",
+                    enabled: true,
+                    reward: 20,
+                    global_limit: 1000,
+                    current_count: 0,
+                    timer_seconds: 0,
+                    video_seconds: 0,
+                    order: 1,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    is_default: true
+                }
+            };
+            renderTasks();
+        }
+        
+        function renderTasks() {
+            tasksContainerEl.innerHTML = '';
+            tasksLoadingEl.textContent = 'লোড হচ্ছে...';
+            
+            if (Object.keys(currentTasks).length === 0) {
+                tasksContainerEl.innerHTML = `
+                    <div class="card-bg p-6 text-center">
+                        <p class="text-gray-400">কোন টাস্ক উপলব্ধ নেই</p>
+                        <p class="text-sm text-gray-500 mt-2">পরবর্তীতে আবার চেক করুন</p>
+                    </div>
+                `;
+                tasksLoadingEl.textContent = '০ টাস্ক উপলব্ধ';
+                return;
+            }
+            
+            let availableTasksCount = 0;
+            
+            for (const [taskId, task] of Object.entries(currentTasks)) {
+                if (!task.enabled) continue;
+                
+                // Check if user has already completed this task (non-default tasks only)
+                const isCompleted = !task.is_default && userData.completedTasks && userData.completedTasks.includes(taskId);
+                if (isCompleted) continue;
+                
+                let taskCard = '';
+                const isAvailable = task.current_count < task.global_limit;
+                
+                switch(task.type) {
+                    case 'watch_ads':
+                        taskCard = createWatchAdsCard(taskId, task, isAvailable);
+                        break;
+                    case 'group_join':
+                        taskCard = createGroupJoinCard(taskId, task, isAvailable);
+                        break;
+                    case 'watch_video':
+                        taskCard = createWatchVideoCard(taskId, task, isAvailable);
+                        break;
+                    default:
+                        taskCard = createGenericTaskCard(taskId, task, isAvailable);
+                }
+                
+                tasksContainerEl.innerHTML += taskCard;
+                availableTasksCount++;
+            }
+            
+            tasksLoadingEl.textContent = availableTasksCount + ' টাস্ক উপলব্ধ';
+            
+            if (availableTasksCount === 0) {
+                tasksContainerEl.innerHTML = `
+                    <div class="card-bg p-6 text-center">
+                        <p class="text-gray-400">কোন টাস্ক উপলব্ধ নেই</p>
+                        <p class="text-sm text-gray-500 mt-2">পরবর্তীতে আবার চেক করুন</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function createWatchAdsCard(taskId, task, isAvailable) {
+            const reward = task.custom_coins || task.reward;
+            const emoji = task.emoji || "📺";
+            
+            return `
+                <div class="task-card card-bg p-4 rounded-lg flex items-center justify-between ${!isAvailable ? 'disabled' : ''}">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">${emoji}</span>
+                        <div>
+                            <h3 class="font-semibold">${task.title}</h3>
+                            <p class="text-xs text-gray-400">${task.description || 'এড দেখে ef উপার্জন করুন'}</p>
+                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লিমিট শেষ</p>' : ''}
+                        </div>
+                    </div>
+                    <button class="bg-white text-black font-semibold px-4 py-2 rounded-lg text-sm btn" 
+                            onclick="startTask('${taskId}')" 
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${reward} ef
+                    </button>
+                </div>
+            `;
+        }
+        
+        function createGroupJoinCard(taskId, task, isAvailable) {
+            const reward = task.custom_coins || task.reward;
+            const emoji = task.emoji || "👥";
+            
+            return `
+                <div class="task-card card-bg p-4 rounded-lg flex items-center justify-between ${!isAvailable ? 'disabled' : ''}">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">${emoji}</span>
+                        <div>
+                            <h3 class="font-semibold">${task.title}</h3>
+                            <p class="text-xs text-gray-400">${task.description || 'আমাদের কমিউনিটি গ্রুপে যোগ দিন'}</p>
+                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লিমিট শেষ</p>' : ''}
+                        </div>
+                    </div>
+                    <button class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg text-sm btn" 
+                            onclick="startGroupJoinTask('${taskId}')" 
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${reward} ef
+                    </button>
+                </div>
+            `;
+        }
+        
+        function createWatchVideoCard(taskId, task, isAvailable) {
+            const reward = task.custom_coins || task.reward;
+            const emoji = task.emoji || "🎬";
+            const videoSeconds = task.video_seconds || 30;
+            
+            return `
+                <div class="task-card card-bg p-4 rounded-lg flex items-center justify-between ${!isAvailable ? 'disabled' : ''}">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">${emoji}</span>
+                        <div>
+                            <h3 class="font-semibold">${task.title}</h3>
+                            <p class="text-xs text-gray-400">${task.description || `ভিডিও দেখে ${videoSeconds} সেকেন্ড`}</p>
+                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লিমিট শেষ</p>' : ''}
+                        </div>
+                    </div>
+                    <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg text-sm btn" 
+                            onclick="startWatchVideoTask('${taskId}')" 
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${reward} ef
+                    </button>
+                </div>
+            `;
+        }
+        
+        function createGenericTaskCard(taskId, task, isAvailable) {
+            const reward = task.custom_coins || task.reward;
+            const emoji = task.emoji || "✅";
+            
+            return `
+                <div class="task-card card-bg p-4 rounded-lg flex items-center justify-between ${!isAvailable ? 'disabled' : ''}">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">${emoji}</span>
+                        <div>
+                            <h3 class="font-semibold">${task.title}</h3>
+                            <p class="text-xs text-gray-400">${task.description || 'টাস্ক সম্পূর্ণ করে ef উপার্জন করুন'}</p>
+                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লিমিট শেষ</p>' : ''}
+                        </div>
+                    </div>
+                    <button class="bg-purple-500 text-white font-semibold px-4 py-2 rounded-lg text-sm btn" 
+                            onclick="startGenericTask('${taskId}')" 
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${reward} ef
+                    </button>
+                </div>
+            `;
+        }
+        
+        window.startTask = async function(taskId) {
+            const task = currentTasks[taskId];
+            if (!task || task.current_count >= task.global_limit) {
+                return showAlert("এই টাস্কটি আর উপলব্ধ নেই।");
+            }
+            
+            switch(task.type) {
+                case 'watch_ads':
+                    await claimReward('interstitial');
+                    break;
+                case 'group_join':
+                    startGroupJoinTask(taskId);
+                    break;
+                case 'watch_video':
+                    startWatchVideoTask(taskId);
+                    break;
+                default:
+                    startGenericTask(taskId);
+            }
+        }
+        
+        window.startGroupJoinTask = function(taskId) {
+            const task = currentTasks[taskId];
+            if (!task || task.current_count >= task.global_limit) {
+                return showAlert("এই টাস্কটি আর উপলব্ধ নেই।");
+            }
+            
+            // Redirect to group link immediately
+            if (task.group_link) {
+                window.open(task.group_link, '_blank');
+            }
+            
+            document.getElementById('group-join-title').textContent = task.title;
+            document.getElementById('group-join-description').textContent = task.description || 'আপনার অংশগ্রহণ যাচাই করা হচ্ছে...';
+            document.getElementById('group-join-timer').textContent = task.timer_seconds + 's';
+            document.getElementById('group-join-modal').classList.remove('hidden');
+            
+            let timeLeft = task.timer_seconds || 5;
+            const timerElement = document.getElementById('group-join-timer');
+            const openBtn = document.getElementById('group-join-open-btn');
+            
+            openBtn.disabled = true;
+            
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft + 's';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    openBtn.disabled = false;
+                    timerElement.textContent = 'প্রস্তুত!';
+                }
+            }, 1000);
+            
+            activeTimers.groupJoin = timerInterval;
+            
+            openBtn.onclick = () => {
+                clearInterval(activeTimers.groupJoin);
+                completeGroupJoinTask(taskId);
+            };
+        }
+        
+        window.closeGroupJoinModal = function() {
+            document.getElementById('group-join-modal').classList.add('hidden');
+            if (activeTimers.groupJoin) {
+                clearInterval(activeTimers.groupJoin);
+            }
+        }
+        
+        async function completeGroupJoinTask(taskId) {
+            const task = currentTasks[taskId];
+            if (!task) return;
+            
+            try {
+                // Global task count update
+                await db.collection("tasks").doc(taskId).update({
+                    current_count: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                const rewardAmount = task.custom_coins || task.reward;
+                await updateBalance(rewardAmount);
+                
+                // Mark task as completed for this specific user (non-default tasks only)
+                if (!task.is_default) {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        completedTasks: firebase.firestore.FieldValue.arrayUnion(taskId),
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                    userData.completedTasks = userData.completedTasks ? [...userData.completedTasks, taskId] : [taskId];
+                } else {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                }
+                
+                userData.totalTasksCompleted = (userData.totalTasksCompleted || 0) + 1;
+                userData.lastTaskDate = new Date().toISOString().split('T')[0];
+                
+                showAlert(`🎉 আপনি ${rewardAmount} ef উপার্জন করেছেন গ্রুপে যোগ দেওয়ার জন্য!`);
+                closeGroupJoinModal();
+                
+                // Re-render tasks to hide the completed one
+                await fetchTaskConfig();
+                
+            } catch (error) {
+                console.error("Error completing group join task:", error);
+                showAlert("টাস্ক সম্পূর্ণ করতে ত্রুটি: " + error.message);
+            }
+        }
+        
+        window.startWatchVideoTask = function(taskId) {
+            const task = currentTasks[taskId];
+            if (!task || task.current_count >= task.global_limit) {
+                return showAlert("এই টাস্কটি আর উপলব্ধ নেই।");
+            }
+            
+            document.getElementById('video-watch-title').textContent = task.title;
+            document.getElementById('video-watch-description').textContent = task.description || 'ভিডিওটি সম্পূর্ণ দেখে ef উপার্জন করুন';
+            document.getElementById('video-watch-timer').textContent = '0s';
+            document.getElementById('video-progress').textContent = '0% সম্পূর্ণ';
+            document.getElementById('video-progress-bar').style.width = '0%';
+            document.getElementById('video-complete-btn').disabled = true;
+            document.getElementById('video-start-btn').disabled = false;
+            document.getElementById('video-start-btn').textContent = 'ভিডিও শুরু করুন';
+            
+            const videoPlayer = document.getElementById('video-player');
+            const videoUrl = task.video_url || "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0";
+            videoPlayer.src = videoUrl;
+            
+            document.getElementById('video-watch-modal').classList.remove('hidden');
+            
+            let timeWatched = 0;
+            const totalTime = task.video_seconds || 30;
+            const timerElement = document.getElementById('video-watch-timer');
+            const progressElement = document.getElementById('video-progress');
+            const progressBar = document.getElementById('video-progress-bar');
+            const completeBtn = document.getElementById('video-complete-btn');
+            const startBtn = document.getElementById('video-start-btn');
+            
+            let isPaused = false;
+            let progressInterval = null;
+            let isTimerRunning = false;
+            
+            // Start button functionality
+            startBtn.onclick = function() {
+                if (!isTimerRunning) {
+                    isTimerRunning = true;
+                    startBtn.disabled = true;
+                    startBtn.textContent = "চলছে...";
+                    
+                    // Start progress timer
+                    progressInterval = setInterval(() => {
+                        if (!isPaused) {
+                            timeWatched++;
+                            const progress = (timeWatched / totalTime) * 100;
+                            
+                            timerElement.textContent = timeWatched + 's';
+                            progressElement.textContent = Math.min(progress, 100).toFixed(0) + '% সম্পূর্ণ';
+                            progressBar.style.width = Math.min(progress, 100) + '%';
+                            
+                            if (timeWatched >= totalTime) {
+                                clearInterval(progressInterval);
+                                completeBtn.disabled = false;
+                            }
+                        }
+                    }, 1000);
+                }
+            };
+            
+            activeTimers.videoWatch = progressInterval;
+            
+            completeBtn.onclick = () => {
+                if (progressInterval) clearInterval(progressInterval);
+                completeWatchVideoTask(taskId);
+            };
+        }
+        
+        window.closeVideoModal = function() {
+            document.getElementById('video-watch-modal').classList.add('hidden');
+            if (activeTimers.videoWatch) {
+                clearInterval(activeTimers.videoWatch);
+            }
+            
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.src = "";
+        }
+        
+        async function completeWatchVideoTask(taskId) {
+            const task = currentTasks[taskId];
+            if (!task) return;
+            
+            try {
+                // Global task count update
+                await db.collection("tasks").doc(taskId).update({
+                    current_count: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                const rewardAmount = task.custom_coins || task.reward;
+                await updateBalance(rewardAmount);
+                
+                // Mark task as completed for this specific user (non-default tasks only)
+                if (!task.is_default) {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        completedTasks: firebase.firestore.FieldValue.arrayUnion(taskId),
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                    userData.completedTasks = userData.completedTasks ? [...userData.completedTasks, taskId] : [taskId];
+                } else {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                }
+                
+                userData.totalTasksCompleted = (userData.totalTasksCompleted || 0) + 1;
+                userData.lastTaskDate = new Date().toISOString().split('T')[0];
+                
+                showAlert(`🎉 আপনি ${rewardAmount} ef উপার্জন করেছেন ভিডিও দেখার জন্য!`);
+                closeVideoModal();
+                
+                // Re-render tasks to hide the completed one
+                await fetchTaskConfig();
+                
+            } catch (error) {
+                console.error("Error completing video task:", error);
+                showAlert("টাস্ক সম্পূর্ণ করতে ত্রুটি: " + error.message);
+            }
+        }
+        
+        window.startGenericTask = async function(taskId) {
+            const task = currentTasks[taskId];
+            if (!task || task.current_count >= task.global_limit) {
+                return showAlert("এই টাস্কটি আর উপলব্ধ নেই।");
+            }
+            
+            try {
+                // Global task count update
+                await db.collection("tasks").doc(taskId).update({
+                    current_count: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                const rewardAmount = task.custom_coins || task.reward;
+                await updateBalance(rewardAmount);
+                
+                // Mark task as completed for this specific user (non-default tasks only)
+                if (!task.is_default) {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        completedTasks: firebase.firestore.FieldValue.arrayUnion(taskId),
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                    userData.completedTasks = userData.completedTasks ? [...userData.completedTasks, taskId] : [taskId];
+                } else {
+                    await db.collection("users").doc(currentUser.uid).update({
+                        totalTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                        lastTaskDate: new Date().toISOString().split('T')[0]
+                    });
+                }
+                
+                userData.totalTasksCompleted = (userData.totalTasksCompleted || 0) + 1;
+                userData.lastTaskDate = new Date().toISOString().split('T')[0];
+                
+                showAlert(`🎉 আপনি ${rewardAmount} ef উপার্জন করেছেন টাস্ক সম্পূর্ণ করার জন্য!`);
+                
+                // Re-render tasks to hide the completed one
+                await fetchTaskConfig();
+                
+            } catch (error) {
+                console.error("Error completing generic task:", error);
+                showAlert("টাস্ক সম্পূর্ণ করতে ত্রুটি: " + error.message);
+            }
+        }
+        
+        window.claimReward = async function(taskType) {
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (userData.lastAdWatchDate !== today) {
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    dailyAdCount: 0, 
+                    lastAdWatchDate: today 
+                });
+                userData.dailyAdCount = 0;
+                userData.lastAdWatchDate = today;
+            }
+            
+            if (userData.dailyAdCount >= (appConfig.dailyAdLimit || 10)) {
+                return showAlert("আপনার আজকের এড দেখা সম্পূর্ণ হয়েছে।");
+            }
+            
+            if (typeof window.show_9549781 !== 'function') {
+                return showAlert("এড সার্ভিস এখন উপলব্ধ নেই। অনুগ্রহ করে পরে চেষ্টা করুন।");
+            }
+            
+            let adPromise;
+            switch(taskType) {
+                case 'interstitial':
+                    adPromise = window.show_9549781();
+                    break;
+                case 'popup':
+                    adPromise = window.show_9549781('pop');
+                    break;
+                case 'inApp':
+                    adPromise = window.show_9549781({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false } });
+                    break;
+                case 'miniApp':
+                    adPromise = window.show_9549781();
+                    break;
+                default:
+                    return;
+            }
+            
+            adPromise.then(async () => {
+                const newCount = (userData.dailyAdCount || 0) + 1;
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    dailyAdCount: newCount,
+                    lastTaskDate: today,
+                    totalTasksCompleted: (userData.totalTasksCompleted || 0) + 1
+                });
+                
+                userData.dailyAdCount = newCount;
+                userData.lastTaskDate = today;
+                userData.totalTasksCompleted = (userData.totalTasksCompleted || 0) + 1;
+                
+                const rewardAmount = 50;
+                
+                if (rewardAmount > 0) {
+                    await updateBalance(rewardAmount);
+                    showAlert(`🎉 অভিনন্দন! আপনি ${rewardAmount} ef জিতেছেন!`);
+                }
+                
+                updateProfileStats();
+                
+                // Haptic feedback
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                
+            }).catch(e => {
+                console.error("Ad error:", e);
+                showAlert('দুঃখিত, এড দেখানো সম্ভব হচ্ছে না।');
+                
+                // Haptic feedback for error
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
+            });
+        }
+        
+        async function updateBalance(amount) {
+            if (!currentUser) return;
+            
+            const newBalance = (userData.balance || 0) + amount;
+            
+            await db.collection("users").doc(currentUser.uid).update({ 
+                balance: newBalance,
+                totalEarned: (userData.totalEarned || 0) + (amount > 0 ? amount : 0)
+            });
+            
+            userData.balance = newBalance;
+            
+            if (amount > 0) {
+                userData.totalEarned = (userData.totalEarned || 0) + amount;
+            }
+            
+            updateUI();
+        }
+        
+        function updateUI() {
+            if (!userData) return;
+            
+            const balance = userData.balance || 0;
+            
+            // Update balance display based on selected mode
+            if (balanceDisplayMode === 'bdt') {
+                const bdtValue = (balance / (appConfig.coinValueCoins || 1000)) * (appConfig.coinValueInr || 10);
+                coinBalanceEl.textContent = bdtValue.toFixed(2);
+                balanceUnitEl.textContent = '৳';
+                walletCoinBalanceEl.textContent = bdtValue.toFixed(2);
+            } else {
+                coinBalanceEl.textContent = balance;
+                balanceUnitEl.textContent = 'ef';
+                walletCoinBalanceEl.textContent = balance;
+            }
+            
+            profileNameEl.textContent = userData.telegramData?.first_name + (userData.telegramData?.last_name ? ' ' + userData.telegramData.last_name : '') || 'ইউজার';
+            
+            if (userData.telegramData?.username) {
+                profileUsernameEl.textContent = '@' + userData.telegramData.username;
+                profileUsernameEl.classList.remove('hidden');
+            }
+            
+            referralCodeEl.textContent = userData.referralCode || '...';
+            minWithdrawalInfoEl.textContent = `${appConfig.minWithdrawal || 5000} ef`;
+            coinValueInfoEl.textContent = `${appConfig.coinValueCoins || 1000} ef = ৳${appConfig.coinValueInr || 10}`;
+            
+            withdrawMethodSelect.innerHTML = '';
+            (appConfig.paymentMethods || []).forEach(method => {
+                const option = document.createElement('option');
+                option.value = method;
+                option.textContent = method;
+                withdrawMethodSelect.appendChild(option);
+            });
+            
+            updateDynamicPaymentFields();
+            updateStreakDisplay();
+            updateLevelDisplay();
+            updateReferralStats();
+            updateProfileStats();
+            updateReferralUI();
+        }
+        
+        function updateProfileStats() {
+            document.getElementById('tasks-completed').textContent = userData.totalTasksCompleted || 0;
+            
+            if (balanceDisplayMode === 'bdt') {
+                const totalEarnedBDT = ((userData.totalEarned || 0) / (appConfig.coinValueCoins || 1000)) * (appConfig.coinValueInr || 10);
+                const totalWithdrawnBDT = ((userData.totalWithdrawn || 0) / (appConfig.coinValueCoins || 1000)) * (appConfig.coinValueInr || 10);
+                
+                document.getElementById('total-earned').textContent = `৳${totalEarnedBDT.toFixed(2)}`;
+                document.getElementById('total-withdrawn').textContent = `৳${totalWithdrawnBDT.toFixed(2)}`;
+            } else {
+                document.getElementById('total-earned').textContent = `${userData.totalEarned || 0} ef`;
+                document.getElementById('total-withdrawn').textContent = `${userData.totalWithdrawn || 0} ef`;
+            }
+            
+            if (userData.createdAt) {
+                const joinDate = userData.createdAt.toDate();
+                document.getElementById('member-since').textContent = joinDate.toLocaleDateString('bn-BD');
+            }
+        }
+        
+        function updateStreakDisplay() {
+            if (userData.streakCount > 0) {
+                streakCounterEl.style.display = 'inline-flex';
+                streakDaysEl.textContent = userData.streakCount;
+                
+                const profileStreak = document.getElementById('profile-streak');
+                if (profileStreak) {
+                    profileStreak.querySelector('span').textContent = userData.streakCount;
+                }
+            }
+        }
+        
+        function updateLevelDisplay() {
+            const currentLevel = userData.level || 1;
+            userLevelEl.textContent = `লেভেল ${currentLevel}`;
+            document.getElementById('profile-level').textContent = `লেভেল ${currentLevel}`;
+        }
+        
+        function updateReferralUI() {
+            if (userData.referredBy) {
+                referralInputSection.classList.add('hidden');
+                referralUsedSection.classList.remove('hidden');
+                referralBonusAmountEl.textContent = appConfig.referralBonus || 100;
+            } else {
+                referralInputSection.classList.remove('hidden');
+                referralUsedSection.classList.add('hidden');
+            }
+        }
+        
+        async function updateReferralStats() {
+            try {
+                const querySnapshot = await db.collection("users")
+                    .where("referredBy", "==", userData.referralCode)
+                    .get();
+                
+                totalReferralsEl.textContent = querySnapshot.size;
+                
+                if (balanceDisplayMode === 'bdt') {
+                    const referralEarningsBDT = (querySnapshot.size * (appConfig.referrerBonus || 100) / (appConfig.coinValueCoins || 1000)) * (appConfig.coinValueInr || 10);
+                    referralEarningsEl.textContent = referralEarningsBDT.toFixed(2);
+                } else {
+                    referralEarningsEl.textContent = querySnapshot.size * (appConfig.referrerBonus || 100);
+                }
+                
+            } catch (error) {
+                console.error("Error fetching referral stats:", error);
+            }
+        }
+        
+        function updateDynamicPaymentFields() {
+            const selectedMethod = withdrawMethodSelect.value.toLowerCase();
+            let placeholder = "বিবরণ লিখুন";
+            
+            if (selectedMethod.includes('bkash') || selectedMethod.includes('nagad') || 
+                selectedMethod.includes('rocket') || selectedMethod.includes('upay')) {
+                placeholder = "আপনার মোবাইল নম্বর লিখুন (01XXXXXXXXX)";
+            } else if (selectedMethod.includes('binance')) {
+                placeholder = "আপনার Binance ID লিখুন (8-12 digits)";
+            } else if (selectedMethod.includes('payeer')) {
+                placeholder = "আপনার Payeer ID লিখুন (PXXXXXXXX)";
+            }
+            
+            paymentDetailsContainer.innerHTML = `
+                <input id="payment-detail-input" type="text" placeholder="${placeholder}" class="w-full p-3 rounded-lg input-field">
+            `;
+            
+            // Add input validation event listener
+            const paymentInput = document.getElementById('payment-detail-input');
+            if (paymentInput) {
+                paymentInput.addEventListener('input', validatePaymentDetails);
+            }
+        }
+        
+        function validatePaymentDetails() {
+            const method = withdrawMethodSelect.value.toLowerCase();
+            const input = document.getElementById('payment-detail-input');
+            const value = input.value.trim();
+            
+            // Reset error state
+            input.classList.remove('input-error');
+            paymentErrorEl.style.display = 'none';
+            
+            if (!value) return true;
+            
+            let isValid = true;
+            let errorMessage = '';
+            
+            if (method.includes('bkash') || method.includes('nagad') || 
+                method.includes('rocket') || method.includes('upay')) {
+                // Validate mobile numbers (01 followed by 9 digits)
+                const mobileRegex = /^01\d{9}$/;
+                if (!mobileRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'মোবাইল নম্বরটি সঠিক ফরম্যাটে নেই (01XXXXXXXXX)';
+                }
+            } else if (method.includes('binance')) {
+                // Validate Binance ID (8-12 digits)
+                const binanceRegex = /^\d{8,12}$/;
+                if (!binanceRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'Binance ID必须是8-12位数字';
+                }
+            } else if (method.includes('payeer')) {
+                // Validate Payeer ID (P followed by 8-12 characters)
+                const payeerRegex = /^P[a-zA-Z0-9]{7,11}$/;
+                if (!payeerRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'Payeer ID必须以P开头，后跟7-11个字母数字字符';
+                }
+            }
+            
+            if (!isValid) {
+                input.classList.add('input-error');
+                paymentErrorEl.textContent = errorMessage;
+                paymentErrorEl.style.display = 'block';
+            }
+            
+            return isValid;
+        }
+        
+        function showMainPage(pageId) {
+            document.querySelectorAll('.main-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+        
+        function navigateTo(pageId) {
+            document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active', 'text-accent');
+                if (link.dataset.page === pageId) link.classList.add('active', 'text-accent');
+            });
+            
+            if (pageId === 'wallet-page') loadWithdrawalHistory();
+            if (pageId === 'refer-page') updateReferralStats();
+            if (pageId === 'notifications-page') loadNotifications();
+            if (pageId === 'profile-page') updateProfileStats();
+            if (pageId === 'home-page') renderTasks();
+            
+            // Stop notification animation when user visits notifications page
+            if (pageId === 'notifications-page') {
+                if (notificationInterval) {
+                    clearInterval(notificationInterval);
+                    notificationInterval = null;
+                }
+                notificationBell.classList.remove('ringing');
+                notificationDot.style.display = 'none';
+            }
+        }
+        window.navigateTo = navigateTo;
+        
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.dataset.page;
+                    navigateTo(pageId);
+                });
+            });
+            
+            // Notification bell
+            document.getElementById('notification-bell').addEventListener('click', () => {
+                navigateTo('notifications-page');
+            });
+            
+            // Withdraw button
+            document.getElementById('home-withdraw-btn').addEventListener('click', () => navigateTo('wallet-page'));
+            document.getElementById('withdraw-btn').addEventListener('click', handleWithdrawal);
+            
+            // Referral system
+            document.getElementById('copy-code-btn').addEventListener('click', copyReferralCode);
+            document.getElementById('share-btn').addEventListener('click', shareReferralCode);
+            document.getElementById('apply-referral-btn').addEventListener('click', handleApplyReferralCode);
+            
+            // Payment method change
+            withdrawMethodSelect.addEventListener('change', updateDynamicPaymentFields);
+            
+            // Alert button
+            document.getElementById('alert-ok-btn').addEventListener('click', () => {
+                document.getElementById('custom-alert').classList.add('hidden');
+            });
+            
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        }
+        
+        async function checkNewNotifications() {
+            if (!userData || !userData.lastNotificationCheck) return;
+            
+            let lastCheck;
+            if (typeof userData.lastNotificationCheck === 'object' && userData.lastNotificationCheck.seconds) {
+                lastCheck = new Date(userData.lastNotificationCheck.seconds * 1000);
+            } else {
+                lastCheck = new Date(userData.lastNotificationCheck);
+            }
+            
+            try {
+                const querySnapshot = await db.collection("notifications")
+                    .where("createdAt", ">", lastCheck)
+                    .limit(1)
+                    .get();
+            
+                if (!querySnapshot.empty) {
+                    // Show notification dot
+                    notificationDot.style.display = 'block';
+                    
+                    // Start notification animation with interval
+                    if (!notificationInterval) {
+                        startNotificationAnimation();
+                    }
+                    
+                    try {
+                        await notificationSound.play();
+                    } catch (error) {
+                        console.log("Notification sound play failed:", error);
+                    }
+                } else {
+                    notificationDot.style.display = 'none';
+                    if (notificationInterval) {
+                        clearInterval(notificationInterval);
+                        notificationInterval = null;
+                    }
+                    notificationBell.classList.remove('ringing');
+                }
+            } catch (error) {
+                console.error("Error checking notifications:", error);
+            }
+        }
+        
+        function startNotificationAnimation() {
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+            }
+            
+            let isRinging = false;
+            
+            notificationInterval = setInterval(() => {
+                if (isRinging) {
+                    notificationBell.classList.remove('ringing');
+                } else {
+                    notificationBell.classList.add('ringing');
+                }
+                isRinging = !isRinging;
+            }, 4000); // 4 seconds interval (2 seconds ringing, 2 seconds pause)
+        }
+        
+        async function loadNotifications() {
+            const listEl = document.getElementById('notifications-list');
+            listEl.innerHTML = '<p class="text-gray-400">লোড হচ্ছে...</p>';
+            notificationDot.style.display = 'none';
+            
+            try {
+                const querySnapshot = await db.collection("notifications")
+                    .orderBy("createdAt", "desc")
+                    .get();
+                    
+                if (querySnapshot.empty) {
+                    listEl.innerHTML = '<p class="text-gray-400 text-center">কোন নোটিফিকেশন নেই</p>';
+                    return;
+                }
+                
+                listEl.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    const msg = doc.data();
+                    const date = msg.createdAt ? msg.createdAt.toDate().toLocaleDateString('bn-BD') : 'N/A';
+                    listEl.innerHTML += `
+                        <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="font-bold">${msg.title}</h3>
+                                <p class="text-xs text-gray-400">${date}</p>
+                            </div>
+                            <p class="text-sm text-gray-300">${msg.message}</p>
+                        </div>
+                    `;
+                });
+                
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    lastNotificationCheck: firebase.firestore.FieldValue.serverTimestamp() 
+                });
+                
+                // Update user data
+                userData.lastNotificationCheck = new Date();
+                
+            } catch (error) {
+                console.error("Error loading notifications:", error);
+                listEl.innerHTML = '<p class="text-red-400">নোটিফিকেশন লোড করার সময় একটি ত্রুটি হয়েছে</p>';
+            }
+        }
+        
+        async function loadWithdrawalHistory() {
+            const historyList = document.getElementById('withdrawal-history-list');
+            historyList.innerHTML = '<p class="text-gray-400">লোড হচ্ছে...</p>';
+            
+            try {
+                const querySnapshot = await db.collection("withdrawals")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                    
+                if (querySnapshot.empty) {
+                    historyList.innerHTML = '<p class="text-gray-400">আপনি এখনো কোন উত্তোলন করেননি</p>';
+                    return;
+                }
+                
+                const withdrawals = [];
+                querySnapshot.forEach(doc => withdrawals.push(doc.data()));
+                
+                withdrawals.sort((a, b) => (b.requestedAt?.seconds || 0) - (a.requestedAt?.seconds || 0));
+                
+                historyList.innerHTML = '';
+                withdrawals.forEach(request => {
+                    const status = request.status;
+                    let statusColor = 'text-yellow-400';
+                    if (status === 'approved') statusColor = 'text-green-400';
+                    else if (status === 'rejected') statusColor = 'text-red-400';
+                    
+                    const date = request.requestedAt ? request.requestedAt.toDate().toLocaleDateString('bn-BD') : 'N/A';
+                    
+                    let amountText = '';
+                    if (balanceDisplayMode === 'bdt') {
+                        const amountBDT = (request.amount / (appConfig.coinValueCoins || 1000)) * (appConfig.coinValueInr || 10);
+                        amountText = `৳${amountBDT.toFixed(2)}`;
+                    } else {
+                        amountText = `${request.amount} ef`;
+                    }
+                    
+                    historyList.innerHTML += `
+                        <div class="card-bg p-3 rounded-lg flex items-center justify-between">
+                            <div>
+                                <p class="font-semibold">${amountText} - ${request.method}</p>
+                                <p class="text-xs text-gray-400">${date}</p>
+                            </div>
+                            <p class="font-bold ${statusColor} capitalize">${status}</p>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Error fetching withdrawal history: ", error);
+                historyList.innerHTML = '<p class="text-red-400">ইতিহাস লোড করার সময় একটি ত্রুটি হয়েছে</p>';
+            }
+        }
+        
+        async function handleApplyReferralCode() {
+            if (userData.referredBy) {
+                return showAlert("আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন");
+            }
+            
+            const codeInput = document.getElementById('enter-referral-code');
+            const code = codeInput.value.trim();
+            
+            if (!code) {
+                return showAlert("অনুগ্রহ করে একটি কোড লিখুন");
+            }
+            
+            if (code === userData.referralCode) {
+                return showAlert("আপনি নিজের কোড ব্যবহার করতে পারবেন না");
+            }
+            
+            loader.style.display = 'flex';
+            await applyReferralBonus(code, true);
+            codeInput.value = '';
+            loader.style.display = 'none';
+        }
+        
+        async function applyReferralBonus(referrerCode, isManualApply = false) {
+            try {
+                const querySnapshot = await db.collection("users")
+                    .where("referralCode", "==", referrerCode)
+                    .get();
+                    
+                if (!querySnapshot.empty) {
+                    const referrerDoc = querySnapshot.docs[0];
+                    const referrerRef = db.collection("users").doc(referrerDoc.id);
+                    const referrerData = referrerDoc.data();
+                    
+                    // Update referred user
+                    await db.collection("users").doc(currentUser.uid).update({ 
+                        referredBy: referrerCode,
+                        referralBonusClaimed: false
+                    });
+                    
+                    userData.referredBy = referrerCode;
+                    userData.referralBonusClaimed = false;
+                    
+                    updateUI();
+                    await checkAndUpdateReferralStatus();
+                    
+                    if (isManualApply) {
+                        showAlert(`রেফারেল কোড সফলভাবে প্রয়োগ হয়েছে! এখন আপনি রেফারেল বোনাস ক্লেইম করতে পারেন`);
+                        
+                        // Haptic feedback
+                        if (tg && tg.HapticFeedback) {
+                            tg.HapticFeedback.notificationOccurred('success');
+                        }
+                    }
+                } else {
+                    if (isManualApply) {
+                        showAlert("অবৈধ রেফারেল কোড");
+                        
+                        // Haptic feedback
+                        if (tg && tg.HapticFeedback) {
+                            tg.HapticFeedback.notificationOccurred('error');
+                        }
+                    }
+                }
+            } catch(error) {
+                console.error("Error applying referral bonus: ", error);
+                if (isManualApply) {
+                    showAlert("রেফারেল কোড প্রয়োগ করতে ত্রুটি: " + error.message);
+                }
+            }
+        }
+        
+        async function handleWithdrawal() {
+            const amount = parseInt(document.getElementById('withdraw-amount').value);
+            const method = document.getElementById('withdraw-method').value;
+            const paymentDetailInput = document.getElementById('payment-detail-input');
+            const paymentDetail = paymentDetailInput ? paymentDetailInput.value.trim() : '';
+            
+            const minWithdrawal = appConfig.minWithdrawal || 5000;
+            
+            if (!amount || amount <= 0) {
+                return showAlert("অনুগ্রহ করে একটি বৈধ পরিমাণ লিখুন");
+            }
+            
+            if (amount < minWithdrawal) {
+                return showAlert(`ন্যূনতম উত্তোলন ${minWithdrawal} ef`);
+            }
+            
+            if (amount > userData.balance) {
+                return showAlert("অপর্যাপ্ত ব্যালেন্স");
+            }
+            
+            if (!paymentDetail) {
+                return showAlert("অনুগ্রহ করে পেমেন্ট বিবরণ লিখুন");
+            }
+            
+            // Validate payment details
+            if (!validatePaymentDetails()) {
+                return showAlert("অনুগ্রহ করে বৈধ পেমেন্ট বিবরণ লিখুন");
+            }
+            
+            try {
+                await updateBalance(-amount);
+                
+                await db.collection("withdrawals").add({
+                    userId: currentUser.uid,
+                    userName: userData.telegramData?.first_name + (userData.telegramData?.last_name ? ' ' + userData.telegramData.last_name : ''),
+                    userUsername: userData.telegramData?.username || '',
+                    amount: amount,
+                    method: method,
+                    paymentDetail: paymentDetail,
+                    status: "pending",
+                    requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                await db.collection("users").doc(currentUser.uid).update({
+                    totalWithdrawn: (userData.totalWithdrawn || 0) + amount
+                });
+                userData.totalWithdrawn = (userData.totalWithdrawn || 0) + amount;
+                
+                showAlert("উত্তোলন রিকোয়েস্ট সফলভাবে জমা দেওয়া হয়েছে!");
+                document.getElementById('withdraw-amount').value = '';
+                paymentDetailInput.value = '';
+                
+                // Haptic feedback
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                
+            } catch (error) {
+                showAlert("রিকোয়েস্ট জমা দিতে ত্রুটি: " + error.message);
+                await updateBalance(amount);
+                
+                // Haptic feedback for error
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
+            }
+        }
+        
+        function copyReferralCode() {
+            const textToCopy = referralCodeEl.textContent;
+            const textArea = document.createElement("textarea");
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-100px';
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showAlert("রেফারেল কোড কপি করা হয়েছে!");
+                
+                // Haptic feedback
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                
+            } catch (err) {
+                showAlert("কোড কপি করতে ব্যর্থ");
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        async function shareReferralCode() {
+            const botUsername = "efEarnBot";
+            const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
+            const text = "🎉 EF রিওয়ার্ড বটে যোগ দিন এবং ef উপার্জন করুন! আমার রেফারেল লিংক ব্যবহার করে বিশেষ বোনাস পান:";
+            
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
+            
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                window.open(shareUrl, '_blank');
+            }
+            
+            // Haptic feedback
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                // Clear local storage
+                localStorage.removeItem('telegramUser');
+                localStorage.removeItem('balanceDisplayMode');
+                
+                // Show logout confirmation
+                showAlert("সফলভাবে লগআউট করা হয়েছে");
+                
+                // Reload the page after a delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                
+            } catch (error) {
+                console.error("Logout error:", error);
+                showAlert("লগআউট করতে ত্রুটি: " + error.message);
+            }
+        }
+        
+        async function checkDailyStreak() {
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            if (userData.lastTaskDate === yesterdayStr) {
+                const newStreak = (userData.streakCount || 0) + 1;
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    streakCount: newStreak,
+                    lastTaskDate: today 
+                });
+                userData.streakCount = newStreak;
+                
+                if (newStreak % 7 === 0) {
+                    const streakBonus = appConfig.streakBonus || 100;
+                    await updateBalance(streakBonus);
+                    showAlert(`🎉 অভিনন্দন! ${newStreak} দিন স্ট্রীক বোনাস: ${streakBonus} ef!`);
+                }
+            } else if (userData.lastTaskDate !== today) {
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    streakCount: 1,
+                    lastTaskDate: today 
+                });
+                userData.streakCount = 1;
+            }
+        }
+        
+        async function checkLevelUp() {
+            const currentLevel = userData.level || 1;
+            const nextLevel = currentLevel + 1;
+            
+            if (nextLevel <= 5 && userData.balance >= [0, 1000, 3000, 7000, 15000][nextLevel-1]) {
+                await db.collection("users").doc(currentUser.uid).update({ 
+                    level: nextLevel 
+                });
+                userData.level = nextLevel;
+                
+                const bonusAmount = appConfig.levelBonuses ? (appConfig.levelBonuses[nextLevel] || 0) : [0, 50, 100, 200, 500][nextLevel-1];
+                if (bonusAmount > 0) {
+                    await updateBalance(bonusAmount);
+                    showAlert(`🎊 লেভেল আপ! আপনি লেভেল ${nextLevel} এ পৌঁছেছেন এবং ${bonusAmount} ef বোনাস পেয়েছেন!`);
+                }
+            }
+        }
+        
+        function toggleBalanceDropdown() {
+            const dropdown = document.getElementById('balance-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        function setBalanceDisplay(mode) {
+            balanceDisplayMode = mode;
+            localStorage.setItem('balanceDisplayMode', mode);
+            updateUI();
+            
+            const dropdown = document.getElementById('balance-dropdown');
+            dropdown.classList.add('hidden');
+        }
+        
+        function showAlert(message) {
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+        window.showAlert = showAlert;
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const balanceToggle = document.querySelector('.balance-toggle');
+            const dropdown = document.getElementById('balance-dropdown');
+            
+            if (!balanceToggle.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
