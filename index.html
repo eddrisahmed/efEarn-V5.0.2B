@@ -163,7 +163,7 @@
         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm text-center">
             <h2 class="text-lg font-bold mb-4 text-accent">Telegram প্রয়োজন</h2>
             <p class="text-gray-300 mb-4">আমাদের EF রিওয়ার্ড অ্যাপটি ব্যবহার করতে Telegram প্রয়োজন। অনুগ্রহ করে আমাদের বটের মাধ্যমে অ্যাপটি ব্যবহার করুন।</p>
-            <button id="open-bot-btn" class="w-full p-3 rounded-lg btn-accent mb-3">EF বট শুরু করুন</button>
+            <button id="open-bot-btn" class="w-full p-3 rounded-lg btn-accent mb-3">efEarn বট শুরু করুন</button>
             <p class="text-sm text-gray-400">বটে গিয়ে "Start" চেপে শুরু করুন</p>
         </div>
     </div>
@@ -200,8 +200,8 @@
                 <!--  <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')">ef</div>
                             <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')">৳ BDT</div> -->
 
-    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')" name="" id="">ef</select>
-    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')" name="ef" id="">৳</select>
+    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')" name="ef" id="">ef</select>
+    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')" name="BDT" id="">৳</select>
 
                             
                         </div>
@@ -346,7 +346,8 @@
                     <div class="relative">
                         <img id="profile-image" src="https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=" class="profile-image">
                         <label for="profile-image-upload" class="absolute bottom-0 right-0 bg-accent text-white p-2 rounded-full cursor-pointer">
-                            <i data-lucide="camera" class="w-4 h-4"></i>
+     <!--     <i data-lucide="camera" class="w-4 h-4"></i>-->
+                            <i class="fa-solid fa-badge-check" style="color: #74C0FC;"></i>
                         </label>
                         <input type="file" id="profile-image-upload" accept="image/*" class="hidden">
                     </div>
@@ -1483,8 +1484,8 @@
         
         function updateLevelDisplay() {
             const currentLevel = userData.level || 1;
-            userLevelEl.textContent = `লেভেল ${currentLevel}`;
-            document.getElementById('profile-level').textContent = `লেভেল ${currentLevel}`;
+            userLevelEl.textContent = `L ${currentLevel}`;
+            document.getElementById('profile-level').textContent = `L ${currentLevel}`;
         }
         
         function updateReferralUI() {
@@ -2057,7 +2058,7 @@
                 const bonusAmount = appConfig.levelBonuses ? (appConfig.levelBonuses[nextLevel] || 0) : [0, 50, 100, 200, 500][nextLevel-1];
                 if (bonusAmount > 0) {
                     await updateBalance(bonusAmount);
-                    showAlert(`🎊 লেভেল আপ! আপনি লেভেল ${nextLevel} এ পৌঁছেছেন এবং ${bonusAmount} ef বোনাস পেয়েছেন!`);
+                    showAlert(`🎊 L আপ! আপনি L ${nextLevel} এ পৌঁছেছেন এবং ${bonusAmount} ef বোনাস পেয়েছেন!`);
                 }
             }
         }
