@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EF রিওয়ার্ড অ্যাপ</title>
+    <title>efEarn App</title>
     
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -164,14 +164,14 @@
             <h2 class="text-lg font-bold mb-4 text-accent">Telegram প্রয়োজন</h2>
             <p class="text-gray-300 mb-4">আমাদের EF রিওয়ার্ড অ্যাপটি ব্যবহার করতে Telegram প্রয়োজন। অনুগ্রহ করে আমাদের বটের মাধ্যমে অ্যাপটি ব্যবহার করুন।</p>
             <button id="open-bot-btn" class="w-full p-3 rounded-lg btn-accent mb-3">EF বট শুরু করুন</button>
-            <p class="text-sm text-gray-400">বটে গিয়ে "Start" টিপে শুরু করুন</p>
+            <p class="text-sm text-gray-400">বটে গিয়ে "Start" চেপে শুরু করুন</p>
         </div>
     </div>
 
     <!-- Main App Container -->
     <div id="app-container" class="min-h-screen flex-col main-page">
         <header class="flex items-center justify-between p-4 sticky top-0 bg-opacity-80 backdrop-blur-md z-10 dark-bg">
-            <h1 class="text-xl font-bold">EF রিওয়ার্ড</h1>
+            <h1 class="text-xl font-bold">efEarn </h1>
             <div class="flex items-center space-x-4">
                 <div class="streak-counter" id="streak-counter" style="display: none;">
                     <i data-lucide="flame" class="w-4 h-4"></i>
@@ -192,15 +192,21 @@
                     <div>
                         <p class="text-gray-400 text-sm">আপনার ব্যালেন্স</p>
                         <div class="balance-toggle" onclick="toggleBalanceDropdown()">
-                            <p class="text-3xl font-bold"><span id="coin-balance">0</span> <span id="balance-unit">ef</span></p>
+                            <p class="text-3xl font-bold"><span id="coin-balance">0</span> <span id="balance-unit"></span></p>
                             <i data-lucide="chevron-down" class="w-5 h-5"></i>
                         </div>
                         <div id="balance-dropdown" class="balance-dropdown hidden">
-                            <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')">ef</div>
-                            <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')">৳ BDT</div>
+                            
+                <!--  <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')">ef</div>
+                            <div class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')">৳ BDT</div> -->
+
+    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('ef')" name="" id="">ef</select>
+    <select class="cursor-pointer p-2 hover:bg-gray-700 rounded" onclick="setBalanceDisplay('bdt')" name="ef" id="">৳</select>
+
+                            
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="level-badge" id="user-level">লেভেল 1</span>
+                            <span class="level-badge" id="user-level">L 1</span>
                             <div class="progress-bar w-20">
                                 <div class="progress-fill" id="level-progress" style="width: 0%"></div>
                             </div>
@@ -266,8 +272,8 @@
                  </div>
 
     <div id="referral-used-section" class="card-bg p-4 rounded-lg mt-6 hidden">
-                  <!--  <h3 class="font-semibold mb-3 text-center text-green-400">✅ রেফারেল কোড ব্যবহৃত হয়েছে</h3>
-                    <p class="text-center text-gray-300">আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন এবং <span id="referral-bonus-amount">100</span> ef বোনাস পেয়েছেন!</p> -->
+                    <h3 class="font-semibold mb-3 text-center text-green-400">✅ রেফারেল কোড ব্যবহৃত হয়েছে</h3>
+                    <p class="text-center text-gray-300">আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন এবং <span id="referral-bonus-amount">100</span> ef বোনাস পেয়েছেন!</p> 
          </div>
 
 
@@ -311,12 +317,6 @@
     </div>
 </div>
 
-
-
-
-
-
-
                 
                  <div class="card-bg p-4 rounded-lg">
                     <h3 class="font-semibold mb-3 text-center">রেফারেল স্ট্যাটাস</h3>
@@ -357,7 +357,7 @@
                     </div>
                     
                     <div class="flex gap-2 mt-2">
-                        <span class="level-badge" id="profile-level">লেভেল 1</span>
+                        <span class="level-badge" id="profile-level">L 1</span>
                         <div class="streak-counter" id="profile-streak">
                             <i data-lucide="flame" class="w-4 h-4"></i>
                             <span>0</span> দিন
@@ -369,7 +369,7 @@
                     <h3 class="font-semibold mb-3">অ্যাকাউন্ট স্ট্যাটাস</h3>
                     <div class="space-y-2">
                         <div class="flex justify-between">
-                            <span class="text-gray-400">সদস্য sejak</span>
+                            <span class="text-gray-400">সদস্য যুক্ত</span>
                             <span id="member-since">-</span>
                         </div>
                         <div class="flex justify-between">
@@ -387,7 +387,7 @@
                     </div>
                 </div>
                 
-                <button id="logout-btn" class="w-full mt-6 p-3 rounded-lg bg-red-600 text-white font-bold">রিস্টার্ট </button>
+                <button id="logout-btn" class="w-full mt-6 p-3 rounded-lg bg-red-600 text-white font-bold">  <i class="fa-sharp-duotone fa-solid fa-arrows-rotate-reverse fa-spin fa-spin-reverse"></i> Restart </button>
             </div>
             
             <!-- Notifications Page -->
@@ -2003,7 +2003,7 @@
                 localStorage.removeItem('balanceDisplayMode');
                 
                 // Show logout confirmation
-                showAlert("সফলভাবে লগআউট করা হয়েছে");
+                showAlert("সফলভাবে রিফ্রেশ করা হয়েছে");
                 
                 // Reload the page after a delay
                 setTimeout(() => {
@@ -2012,7 +2012,7 @@
                 
             } catch (error) {
                 console.error("Logout error:", error);
-                showAlert("লগআউট করতে ত্রুটি: " + error.message);
+                showAlert("রিফ্রেশ করতে ত্রুটি: " + error.message);
             }
         }
         
