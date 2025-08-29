@@ -878,7 +878,7 @@
                     title: "এড দেখুন",
                     type: "watch_ads",
                     enabled: true,
-                    reward: 20,
+                    reward: 10,
                     global_limit: 1000,
                     current_count: 0,
                     timer_seconds: 0,
@@ -1367,7 +1367,7 @@
                 userData.lastTaskDate = today;
                 userData.totalTasksCompleted = (userData.totalTasksCompleted || 0) + 1;
                 
-                const rewardAmount = 50;
+                const rewardAmount = 10;
                 
                 if (rewardAmount > 0) {
                     await updateBalance(rewardAmount);
