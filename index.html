@@ -1992,26 +1992,24 @@
 
     const text = `🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉
     
-    ➥ বিজ্ঞাপন দেখে আয়
-    ➥ রেফার করে আয় (প্রতি রেফার ১ টাকা) 
-    ➥ ডেইলি লগইন বোনাস
-    ➥ ৩, ৫ & ৭ দিন স্ট্রেক বোনাস
-    ➥ লেভেল'আপ বোনাস
+            ➥ বিজ্ঞাপন দেখে আয়
+            ➥ রেফার করে আয় (প্রতি রেফার ১ টাকা) 
+            ➥ ডেইলি লগইন বোনাস
+            ➥ ৩, ৫ & ৭ দিন স্ট্রেক বোনাস
+            ➥ লেভেল'আপ বোনাস
     
-    এখনই যুক্ত হন এবং আপনার আয় শুরু করুন!
-    
-    🔥Claim 100ef Free❤‍🔥
-    Video: t.me/efEarn/5
-    Bonus Code: ${userData.referralCode}
-    Start Earning: @efEarnBot`;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
+            🔥Claim 100ef Free❤‍🔥
+            Video: t.me/efEarn/5
+            Bonus Code: ${userData.referralCode}
+            Start Earning: @efEarnBot`;
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
 
-    if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
-    } else {
-        window.open(shareUrl, '_blank');
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+            window.open(shareUrl, '_blank');
+        }
     }
-}
 
 
             
