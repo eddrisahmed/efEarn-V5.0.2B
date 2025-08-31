@@ -1989,7 +1989,7 @@
    async function shareReferralCode() {
             const botUsername = "efEarnBot";
        
-        const text = "🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉\n\n 🔥Claim 100ef Free ❤️‍🔥\n Video: t.me/efEarn/5 \n Bonus Code: ${userData.referralCode} \n Start Earning: @efEarnBot";
+        const text = "🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉\n\n 🔥Claim 100ef Free ❤️‍🔥\n Video: t.me/efEarn/5\n Bonus Code: ${userData.referralCode}\n Start Earning: @efEarnBot";
 
             const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
@@ -2093,16 +2093,15 @@
             document.getElementById('alert-message').textContent = message;
             document.getElementById('custom-alert').classList.remove('hidden');
         }
-        window.showAlert = showAlert;
-        
-        // Close dropdown when clicking outside
+/* window.showAlert = showAlert;
+         Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const balanceToggle = document.querySelector('.balance-toggle');
             const dropdown = document.getElementById('balance-dropdown');
             
             if (!balanceToggle.contains(event.target) && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
-            }
+            }*/
         });
     });
 </script>
