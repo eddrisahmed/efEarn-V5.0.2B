@@ -1989,12 +1989,7 @@
    async function shareReferralCode() {
             const botUsername = "efEarnBot";
        
-        const text = "🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉" 
-            
-       "🔥Claim 100ef Free ❤️‍🔥"
-       " Video: t.me/efEarn/5"
-       " Bonus Code: ${userData.referralCode}"
-       " Start Earning: @efEarnBot";
+        const text = "🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉\n\n 🔥Claim 100ef Free ❤️‍🔥\n Video: t.me/efEarn/5 \n Bonus Code: ${userData.referralCode} \n Start Earning: @efEarnBot";
 
             const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
