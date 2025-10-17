@@ -472,28 +472,29 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 
- <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDBkvArKeIY11CDntlf9uyWPwZIPED1WZQ",
-            authDomain: "ef-earning-bot.firebaseapp.com",
-            projectId: "ef-earning-bot",
-            storageBucket: "ef-earning-bot.firebasestorage.app",
-            messagingSenderId: "742449423671",
-            appId: "1:742449423671:web:7dfbef9db2e7b4ff6726b2"
-        };
+        // ==================== FIREBASE কনফিগারেশন ====================
+       const firebaseConfig = {
+  apiKey: "AIzaSyAVsY970aU6sa6Cu2Yw0WnbS3OfCW7QfaY",
+  authDomain: "ef-earn-bot.firebaseapp.com",
+  databaseURL: "https://ef-earn-bot-default-rtdb.firebaseio.com",
+  projectId: "ef-earn-bot",
+  storageBucket: "ef-earn-bot.firebasestorage.app",
+  messagingSenderId: "700440287970",
+  appId: "1:700440287970:web:e602a158b0cc670d3f1cbb"
+};
         
-        // Initialize Firebase
+        // Firebase initialization
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
         
-        // Initialize Lucide icons
+        // Lucide icons initialization
         lucide.createIcons();
         
-        // Telegram WebApp initialization
+        // ==================== TELEGRAM WEBAPP INITIALIZATION ====================
         const tg = window.Telegram?.WebApp;
         let currentUser = null;
         let userData = null;
@@ -503,6 +504,7 @@
         let notificationInterval = null;
         let balanceDisplayMode = localStorage.getItem('balanceDisplayMode') || 'ef';
         
+        // UI elements
         const loader = document.getElementById('loader');
         const coinBalanceEl = document.getElementById('coin-balance');
         const balanceUnitEl = document.getElementById('balance-unit');
@@ -532,22 +534,23 @@
         const nonTelegramWarning = document.getElementById('non-telegram-warning');
         const openBotBtn = document.getElementById('open-bot-btn');
         
-        // Check if Telegram WebApp is available
+        // ==================== TELEGRAM AVAILABILITY CHECK ====================
         if (!tg) {
             showNonTelegramWarning();
             return;
         }
         
-        // Initialize Telegram WebApp
+        // Telegram WebApp initialization
         tg.expand();
         tg.enableClosingConfirmation();
         
-        // Set up event listeners
+        // Event listeners setup
         setupEventListeners();
         
-        // Start authentication process
+        // Authentication process start
         initializeApp();
         
+        // ==================== NON-TELEGRAM WARNING FUNCTION ====================
         function showNonTelegramWarning() {
             nonTelegramWarning.classList.remove('hidden');
             document.getElementById('app-container').classList.add('hidden');
@@ -557,6 +560,7 @@
             });
         }
         
+        // ==================== MAIN INITIALIZATION FUNCTION ====================
         async function initializeApp() {
             loader.style.display = 'flex';
             
@@ -577,9 +581,10 @@
                 // Load app config and user data
                 await fetchAllConfigs();
                 
-                // বিশেষভাবে রেফারেল ইউজারদের জন্য UI আপডেট
+                // Check and update referral status
                 await checkAndUpdateReferralStatus();
                 
+                // Check notifications, streak and level
                 await checkNewNotifications();
                 await checkDailyStreak();
                 await checkLevelUp();
@@ -600,7 +605,7 @@
             }
         }
         
-        // রেফারেল স্ট্যাটাস চেক এবং UI আপডেট করার ফাংশন
+        // ==================== REFERRAL STATUS CHECK FUNCTION ====================
         async function checkAndUpdateReferralStatus() {
             if (!userData) return;
             
@@ -611,18 +616,18 @@
             if (!referralInputSection || !referralUsedSection || !referralClaimSection) return;
             
             try {
-                // ইউজার ডাটা রিফ্রেশ করে নেওয়া
+                // Refresh user data
                 const userDoc = await db.collection("users").doc(currentUser.uid).get();
                 if (userDoc.exists) {
                     userData = userDoc.data();
                     
-                    // যদি ইউজার রেফার্ড হয়ে থাকে কিন্তু এখনও বোনাস না পেয়ে থাকে
+                    // If user was referred but hasn't claimed bonus yet
                     if (userData.referredBy && !userData.referralBonusClaimed) {
                         referralInputSection.classList.add('hidden');
                         referralUsedSection.classList.add('hidden');
                         referralClaimSection.classList.remove('hidden');
                         
-                        // রেফারার তথ্য দেখানো
+                        // Show referrer info
                         const referrerDoc = await db.collection("users")
                             .where("referralCode", "==", userData.referredBy)
                             .get();
@@ -637,13 +642,13 @@
                         }
                         
                     } 
-                    // যদি ইউজার রেফার্ড হয়ে থাকে এবং বোনাস already পেয়ে থাকে
+                    // If user was referred and already claimed bonus
                     else if (userData.referredBy && userData.referralBonusClaimed) {
                         referralInputSection.classList.add('hidden');
                         referralClaimSection.classList.add('hidden');
                         referralUsedSection.classList.remove('hidden');
                         
-                        // রেফারার তথ্য দেখানো
+                        // Show referrer info
                         const referrerDoc = await db.collection("users")
                             .where("referralCode", "==", userData.referredBy)
                             .get();
@@ -659,7 +664,7 @@
                         
                         referralBonusAmountEl.textContent = appConfig.referralBonus || 100;
                     } else {
-                        // যদি ইউজার রেফার্ড না হয়ে থাকে
+                        // If user wasn't referred
                         referralUsedSection.classList.add('hidden');
                         referralClaimSection.classList.add('hidden');
                         referralInputSection.classList.remove('hidden');
@@ -670,7 +675,7 @@
             }
         }
         
-        // রেফারেল বোনাস ক্লেইম করার ফাংশন
+        // ==================== REFERRAL BONUS CLAIM FUNCTION ====================
         window.claimReferralBonus = async function() {
             if (!userData.referredBy || userData.referralBonusClaimed) {
                 return showAlert("আপনি ইতিমধ্যেই রেফারেল বোনাস ক্লেইম করেছেন");
@@ -679,14 +684,14 @@
             try {
                 const referralBonusAmount = appConfig.referralBonus || 100;
                 
-                // ইউজারের ব্যালেন্স আপডেট
+                // Update user balance
                 await db.collection("users").doc(currentUser.uid).update({
                     balance: firebase.firestore.FieldValue.increment(referralBonusAmount),
                     referralBonusClaimed: true,
                     totalEarned: firebase.firestore.FieldValue.increment(referralBonusAmount)
                 });
                 
-                // রেফারার ব্যালেন্স আপডেট
+                // Update referrer balance and send notification
                 const referrerDoc = await db.collection("users")
                     .where("referralCode", "==", userData.referredBy)
                     .get();
@@ -697,16 +702,20 @@
                     
                     await db.collection("users").doc(referrerDoc.docs[0].id).update({
                         balance: firebase.firestore.FieldValue.increment(referrerBonusAmount),
-                        totalEarned: firebase.firestore.FieldValue.increment(referrerBonusAmount)
+                        totalEarned: firebase.firestore.FieldValue.increment(referrerBonusAmount),
+                        totalReferrals: firebase.firestore.FieldValue.increment(1)
                     });
+                    
+                    // Send notification to referrer
+                    await sendReferralNotification(referrerDoc.docs[0].id, userData.telegramData?.first_name || "একজন নতুন ইউজার");
                 }
                 
-                // ইউজার ডাটা আপডেট
+                // Update user data
                 userData.balance += referralBonusAmount;
                 userData.totalEarned += referralBonusAmount;
                 userData.referralBonusClaimed = true;
                 
-                // UI আপডেট
+                // Update UI
                 updateUI();
                 await checkAndUpdateReferralStatus();
                 
@@ -723,6 +732,23 @@
             }
         };
         
+        // ==================== SEND REFERRAL NOTIFICATION FUNCTION ====================
+        async function sendReferralNotification(referrerId, newUserName) {
+            try {
+                await db.collection("notifications").add({
+                    userId: referrerId,
+                    title: "🎉 নতুন রেফারেল!",
+                    message: `${newUserName} আপনার রেফারেল লিংক ব্যবহার করে জয়েন করেছেন এবং আপনি ${appConfig.referrerBonus || 100} ef বোনাস পেয়েছেন!`,
+                    type: "referral",
+                    isRead: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("রেফারেল নোটিফিকেশন পাঠাতে ত্রুটি:", error);
+            }
+        }
+        
+        // ==================== HANDLE TELEGRAM USER FUNCTION ====================
         async function handleTelegramUser(tgUser) {
             currentUser = {
                 uid: tgUser.id.toString(),
@@ -739,6 +765,7 @@
             updateProfileWithTelegramData(tgUser);
         }
         
+        // ==================== FETCH OR CREATE USER FUNCTION ====================
         async function fetchOrCreateUser() {
             try {
                 const userDoc = await db.collection("users").doc(currentUser.uid).get();
@@ -755,6 +782,7 @@
             }
         }
         
+        // ==================== CREATE NEW USER FUNCTION ====================
         async function createNewUser() {
             const tgUser = currentUser.telegramData;
             const referralCode = tg.startParam || null;
@@ -770,7 +798,7 @@
                     language_code: tgUser.language_code || 'en'
                 },
                 balance: 50,
-                referralCode: currentUser.uid,
+                referralCode: generateReferralCode(),
                 referredBy: referralCode,
                 referralBonusClaimed: false,
                 lastNotificationCheck: new Date(),
@@ -785,6 +813,7 @@
                 totalTasksCompleted: 0,
                 totalEarned: 0,
                 totalWithdrawn: 0,
+                totalReferrals: 0,
                 profileImage: tgUser.photo_url || "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=",
                 devices: [],
                 completedTasks: []
@@ -798,6 +827,17 @@
             }
         }
         
+        // ==================== GENERATE REFERRAL CODE FUNCTION ====================
+        function generateReferralCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // ==================== UPDATE PROFILE WITH TELEGRAM DATA FUNCTION ====================
         function updateProfileWithTelegramData(tgUser) {
             // Update profile image
             if (tgUser.photo_url) {
@@ -814,11 +854,13 @@
             }
         }
         
+        // ==================== FETCH ALL CONFIGS FUNCTION ====================
         async function fetchAllConfigs() {
             await fetchAppConfig();
             await fetchTaskConfig();
         }
         
+        // ==================== FETCH APP CONFIG FUNCTION ====================
         async function fetchAppConfig() {
             try {
                 const configDoc = await db.collection("config").doc("main").get();
@@ -847,6 +889,7 @@
             }
         }
         
+        // ==================== FETCH TASK CONFIG FUNCTION ====================
         async function fetchTaskConfig() {
             try {
                 const tasksSnapshot = await db.collection("tasks")
@@ -859,7 +902,7 @@
                     currentTasks[doc.id] = { id: doc.id, ...doc.data() };
                 });
                 
-                // Admin-created tasks থাকলে শুধুমাত্র সেগুলো দেখাবে, নাহলে ডিফল্ট টাস্ক লোড করবে
+                // If there are admin-created tasks, show only those, otherwise load default tasks
                 if (Object.keys(currentTasks).length === 0) {
                     loadDefaultTasks();
                 } else {
@@ -871,6 +914,7 @@
             }
         }
         
+        // ==================== LOAD DEFAULT TASKS FUNCTION ====================
         function loadDefaultTasks() {
             currentTasks = {
                 watch_ads: {
@@ -891,6 +935,7 @@
             renderTasks();
         }
         
+        // ==================== RENDER TASKS FUNCTION ====================
         function renderTasks() {
             tasksContainerEl.innerHTML = '';
             tasksLoadingEl.textContent = 'লোড হচ্ছে...';
@@ -948,6 +993,7 @@
             }
         }
         
+        // ==================== CREATE WATCH ADS CARD FUNCTION ====================
         function createWatchAdsCard(taskId, task, isAvailable) {
             const reward = task.custom_coins || task.reward;
             const emoji = task.emoji || "📺";
@@ -971,6 +1017,7 @@
             `;
         }
         
+        // ==================== CREATE GROUP JOIN CARD FUNCTION ====================
         function createGroupJoinCard(taskId, task, isAvailable) {
             const reward = task.custom_coins || task.reward;
             const emoji = task.emoji || "👥";
@@ -994,6 +1041,7 @@
             `;
         }
         
+        // ==================== CREATE WATCH VIDEO CARD FUNCTION ====================
         function createWatchVideoCard(taskId, task, isAvailable) {
             const reward = task.custom_coins || task.reward;
             const emoji = task.emoji || "🎬";
@@ -1006,7 +1054,7 @@
                         <div>
                             <h3 class="font-semibold">${task.title}</h3>
                             <p class="text-xs text-gray-400">${task.description || `ভিডিও দেখে ${videoSeconds} সেকেন্ড`}</p>
-                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লিমিট শেষ</p>' : ''}
+                            ${!isAvailable ? '<p class="text-xs text-red-400 mt-1">লिमিট শেষ</p>' : ''}
                         </div>
                     </div>
                     <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg text-sm btn" 
@@ -1018,6 +1066,7 @@
             `;
         }
         
+        // ==================== CREATE GENERIC TASK CARD FUNCTION ====================
         function createGenericTaskCard(taskId, task, isAvailable) {
             const reward = task.custom_coins || task.reward;
             const emoji = task.emoji || "✅";
@@ -1041,6 +1090,7 @@
             `;
         }
         
+        // ==================== START TASK FUNCTION ====================
         window.startTask = async function(taskId) {
             const task = currentTasks[taskId];
             if (!task || task.current_count >= task.global_limit) {
@@ -1062,6 +1112,7 @@
             }
         }
         
+        // ==================== START GROUP JOIN TASK FUNCTION ====================
         window.startGroupJoinTask = function(taskId) {
             const task = currentTasks[taskId];
             if (!task || task.current_count >= task.global_limit) {
@@ -1103,6 +1154,7 @@
             };
         }
         
+        // ==================== CLOSE GROUP JOIN MODAL FUNCTION ====================
         window.closeGroupJoinModal = function() {
             document.getElementById('group-join-modal').classList.add('hidden');
             if (activeTimers.groupJoin) {
@@ -1110,6 +1162,7 @@
             }
         }
         
+        // ==================== COMPLETE GROUP JOIN TASK FUNCTION ====================
         async function completeGroupJoinTask(taskId) {
             const task = currentTasks[taskId];
             if (!task) return;
@@ -1153,6 +1206,7 @@
             }
         }
         
+        // ==================== START WATCH VIDEO TASK FUNCTION ====================
         window.startWatchVideoTask = function(taskId) {
             const task = currentTasks[taskId];
             if (!task || task.current_count >= task.global_limit) {
@@ -1220,6 +1274,7 @@
             };
         }
         
+        // ==================== CLOSE VIDEO MODAL FUNCTION ====================
         window.closeVideoModal = function() {
             document.getElementById('video-watch-modal').classList.add('hidden');
             if (activeTimers.videoWatch) {
@@ -1230,6 +1285,7 @@
             videoPlayer.src = "";
         }
         
+        // ==================== COMPLETE WATCH VIDEO TASK FUNCTION ====================
         async function completeWatchVideoTask(taskId) {
             const task = currentTasks[taskId];
             if (!task) return;
@@ -1273,6 +1329,7 @@
             }
         }
         
+        // ==================== START GENERIC TASK FUNCTION ====================
         window.startGenericTask = async function(taskId) {
             const task = currentTasks[taskId];
             if (!task || task.current_count >= task.global_limit) {
@@ -1317,6 +1374,7 @@
             }
         }
         
+        // ==================== CLAIM REWARD FUNCTION ====================
         window.claimReward = async function(taskType) {
             const today = new Date().toISOString().split('T')[0];
             
@@ -1392,6 +1450,7 @@
             });
         }
         
+        // ==================== UPDATE BALANCE FUNCTION ====================
         async function updateBalance(amount) {
             if (!currentUser) return;
             
@@ -1411,6 +1470,7 @@
             updateUI();
         }
         
+        // ==================== UPDATE UI FUNCTION ====================
         function updateUI() {
             if (!userData) return;
             
@@ -1455,6 +1515,7 @@
             updateReferralUI();
         }
         
+        // ==================== UPDATE PROFILE STATS FUNCTION ====================
         function updateProfileStats() {
             document.getElementById('tasks-completed').textContent = userData.totalTasksCompleted || 0;
             
@@ -1475,6 +1536,7 @@
             }
         }
         
+        // ==================== UPDATE STREAK DISPLAY FUNCTION ====================
         function updateStreakDisplay() {
             if (userData.streakCount > 0) {
                 streakCounterEl.style.display = 'inline-flex';
@@ -1487,12 +1549,14 @@
             }
         }
         
+        // ==================== UPDATE LEVEL DISPLAY FUNCTION ====================
         function updateLevelDisplay() {
             const currentLevel = userData.level || 1;
             userLevelEl.textContent = `L ${currentLevel}`;
             document.getElementById('profile-level').textContent = `L ${currentLevel}`;
         }
         
+        // ==================== UPDATE REFERRAL UI FUNCTION ====================
         function updateReferralUI() {
             if (userData.referredBy) {
                 referralInputSection.classList.add('hidden');
@@ -1504,6 +1568,7 @@
             }
         }
         
+        // ==================== UPDATE REFERRAL STATS FUNCTION ====================
         async function updateReferralStats() {
             try {
                 const querySnapshot = await db.collection("users")
@@ -1524,6 +1589,7 @@
             }
         }
         
+        // ==================== UPDATE DYNAMIC PAYMENT FIELDS FUNCTION ====================
         function updateDynamicPaymentFields() {
             const selectedMethod = withdrawMethodSelect.value.toLowerCase();
             let placeholder = "বিবরণ লিখুন";
@@ -1548,6 +1614,7 @@
             }
         }
         
+        // ==================== VALIDATE PAYMENT DETAILS FUNCTION ====================
         function validatePaymentDetails() {
             const method = withdrawMethodSelect.value.toLowerCase();
             const input = document.getElementById('payment-detail-input');
@@ -1595,11 +1662,13 @@
             return isValid;
         }
         
+        // ==================== SHOW MAIN PAGE FUNCTION ====================
         function showMainPage(pageId) {
             document.querySelectorAll('.main-page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
         }
         
+        // ==================== NAVIGATE TO FUNCTION ====================
         function navigateTo(pageId) {
             document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -1627,6 +1696,7 @@
         }
         window.navigateTo = navigateTo;
         
+        // ==================== SETUP EVENT LISTENERS FUNCTION ====================
         function setupEventListeners() {
             // Navigation
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -1663,6 +1733,7 @@
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
         }
         
+        // ==================== CHECK NEW NOTIFICATIONS FUNCTION ====================
         async function checkNewNotifications() {
             if (!userData || !userData.lastNotificationCheck) return;
             
@@ -1706,6 +1777,7 @@
             }
         }
         
+        // ==================== START NOTIFICATION ANIMATION FUNCTION ====================
         function startNotificationAnimation() {
             if (notificationInterval) {
                 clearInterval(notificationInterval);
@@ -1723,6 +1795,7 @@
             }, 4000); // 4 seconds interval (2 seconds ringing, 2 seconds pause)
         }
         
+        // ==================== LOAD NOTIFICATIONS FUNCTION ====================
         async function loadNotifications() {
             const listEl = document.getElementById('notifications-list');
             listEl.innerHTML = '<p class="text-gray-400">লোড হচ্ছে...</p>';
@@ -1766,6 +1839,7 @@
             }
         }
         
+        // ==================== LOAD WITHDRAWAL HISTORY FUNCTION ====================
         async function loadWithdrawalHistory() {
             const historyList = document.getElementById('withdrawal-history-list');
             historyList.innerHTML = '<p class="text-gray-400">লোড হচ্ছে...</p>';
@@ -1818,6 +1892,7 @@
             }
         }
         
+        // ==================== HANDLE APPLY REFERRAL CODE FUNCTION ====================
         async function handleApplyReferralCode() {
             if (userData.referredBy) {
                 return showAlert("আপনি ইতিমধ্যেই একটি রেফারেল কোড ব্যবহার করেছেন");
@@ -1840,6 +1915,7 @@
             loader.style.display = 'none';
         }
         
+        // ==================== APPLY REFERRAL BONUS FUNCTION ====================
         async function applyReferralBonus(referrerCode, isManualApply = false) {
             try {
                 const querySnapshot = await db.collection("users")
@@ -1889,6 +1965,7 @@
             }
         }
         
+        // ==================== HANDLE WITHDRAWAL FUNCTION ====================
         async function handleWithdrawal() {
             const amount = parseInt(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
@@ -1957,6 +2034,7 @@
             }
         }
         
+        // ==================== COPY REFERRAL CODE FUNCTION ====================
         function copyReferralCode() {
             const textToCopy = referralCodeEl.textContent;
             const textArea = document.createElement("textarea");
@@ -1983,62 +2061,19 @@
             document.body.removeChild(textArea);
         }
         
+        // ==================== SHARE REFERRAL CODE FUNCTION ====================
         async function shareReferralCode() {
             const botUsername = "efEarnBot";
-        //    const text = "🎉ef রিওয়ার্ড বটে যোগ দিন এবং ef উপার্জন করুন! আমার রেফারেল লিংক ব্যবহার করে বিশেষ বোনাস পান:";
-        //    const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
-
-
-
-    async function shareReferralCode() {
-    const botUsername = "efEarnBot";
-    const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
-
-    const text = `🎉 সুখবর! এবার আয় করুন ফ্রিতে আরও সহজে efEarn এর সাথে! 🎉
-
-আপনারা যারা ঘরে বসে ছোট ছোট কাজ করে পকেট মানি আয় করতে চান, তাদের জন্য আমাদের এই নতুন প্ল্যাটফর্ম। এখানে আপনি খুব সহজেই বিভিন্ন কাজ সম্পন্ন করে আয় করতে পারবেন।
-
-✨ আমাদের মূল উপার্জন সমূহ: ✨
-
-👉 Ranging...
-➥ বিজ্ঞাপন দেখে আয়
-➥ রেফার করে আয় (প্রতি রেফার ১ টাকা) 
-➥ ডেইলি লগইন বোনাস
-➥ ৩, ৫ & ৭ দিন স্ট্রেক বোনাস
-➥ লেভেল'আপ বোনাস
-
-👉 Coming soon...
-➥ গ্ৰুপ জয়েন করে আয়
-➥ ভিডিও দেখে আয়
-➥ ওয়েবসাইট ভিসিট করে আয়
-➥ App Download করে আয়
-➥ Subscribe করে আয়
-➥ ভিডিও-etc লাইকে আয়
-
-👉 Payment...
-➥ বিকাশ, নগদ, রকেট, Payeer ও Binance পেমেন্ট।
-➥ সর্বনিম্ন উইথড্র 500ef (non-fixed)
-➥ সর্বচ্চ উইথড্র Unlimited
-
-এখনই যুক্ত হন এবং আপনার আয় শুরু করুন!
-
-🔥Claim 100ef Free ❤‍🔥
-Video: t.me/efEarn/5
-
-Bonus Code: ${userData.referralCode}
-
-Start Earning: @${botUsername}
-
-❤‍🔥❤‍🔥❤‍🔥❤‍🔥❤‍🔥❤‍🔥❤‍🔥❤‍🔥`;
-
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
-
-    if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
-    } else {
-        window.open(shareUrl, '_blank');
-    }
-}
+            const referralLink = `https://t.me/${botUsername}?start=${userData.referralCode}`;
+            const text = "🎉 EF রিওয়ার্ড বটে যোগ দিন এবং ef উপার্জন করুন! আমার রেফারেল লিংক ব্যবহার করে বিশেষ বোনাস পান:";
+            
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
+            
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                window.open(shareUrl, '_blank');
+            }
             
             // Haptic feedback
             if (tg && tg.HapticFeedback) {
@@ -2046,6 +2081,7 @@ Start Earning: @${botUsername}
             }
         }
         
+        // ==================== HANDLE LOGOUT FUNCTION ====================
         async function handleLogout() {
             try {
                 // Clear local storage
@@ -2066,6 +2102,7 @@ Start Earning: @${botUsername}
             }
         }
         
+        // ==================== CHECK DAILY STREAK FUNCTION ====================
         async function checkDailyStreak() {
             const today = new Date().toISOString().split('T')[0];
             const yesterday = new Date();
@@ -2094,6 +2131,7 @@ Start Earning: @${botUsername}
             }
         }
         
+        // ==================== CHECK LEVEL UP FUNCTION ====================
         async function checkLevelUp() {
             const currentLevel = userData.level || 1;
             const nextLevel = currentLevel + 1;
@@ -2112,11 +2150,13 @@ Start Earning: @${botUsername}
             }
         }
         
+        // ==================== TOGGLE BALANCE DROPDOWN FUNCTION ====================
         function toggleBalanceDropdown() {
             const dropdown = document.getElementById('balance-dropdown');
             dropdown.classList.toggle('hidden');
         }
         
+        // ==================== SET BALANCE DISPLAY FUNCTION ====================
         function setBalanceDisplay(mode) {
             balanceDisplayMode = mode;
             localStorage.setItem('balanceDisplayMode', mode);
@@ -2126,6 +2166,7 @@ Start Earning: @${botUsername}
             dropdown.classList.add('hidden');
         }
         
+        // ==================== SHOW ALERT FUNCTION ====================
         function showAlert(message) {
             document.getElementById('alert-message').textContent = message;
             document.getElementById('custom-alert').classList.remove('hidden');
